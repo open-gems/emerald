@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import type { EditorCustomHandlers, EditorToolbarItem } from '@nuxt/ui'
+import type { Editor, EditorProps } from "@tiptap/vue-3";
+import type { EditorCustomHandlers, EditorToolbarItem } from "@nuxt/ui";
+import Highlight from "@tiptap/extension-highlight";
 
 const value =
   ref(`ARTÍCULO 1o. ALCANCE. El presente decreto se aplica en la totalidad del Territorio
@@ -20,78 +22,102 @@ Doctrina Concordante
 Oficio DIAN 904105 de 2021`);
 
 const customHandlers = {
-} satisfies EditorCustomHandlers
+  highlight: {
+    canExecute: (editor: Editor) => editor.can().toggleHighlight(),
+    execute: (editor: Editor) => editor.chain().focus().toggleHighlight(),
+    isActive: (editor: Editor) => editor.isActive("highlight"),
+    isDisabled: (editor: Editor) => !editor.isEditable,
+  },
+} satisfies EditorCustomHandlers;
 
-const items = [
+const toolbarItems = [
   [
     {
-      icon: 'i-lucide-heading',
+      icon: "i-lucide-heading",
       content: {
-        align: 'start'
+        align: "start",
       },
       items: [
         {
-          kind: 'heading',
+          kind: "heading",
           level: 1,
-          icon: 'i-lucide-heading-1',
-          label: 'Heading 1'
+          icon: "i-lucide-heading-1",
+          label: "Heading 1",
         },
         {
-          kind: 'heading',
+          kind: "heading",
           level: 2,
-          icon: 'i-lucide-heading-2',
-          label: 'Heading 2'
+          icon: "i-lucide-heading-2",
+          label: "Heading 2",
         },
         {
-          kind: 'heading',
+          kind: "heading",
           level: 3,
-          icon: 'i-lucide-heading-3',
-          label: 'Heading 3'
+          icon: "i-lucide-heading-3",
+          label: "Heading 3",
         },
         {
-          kind: 'heading',
+          kind: "heading",
           level: 4,
-          icon: 'i-lucide-heading-4',
-          label: 'Heading 4'
-        }
-      ]
-    }
+          icon: "i-lucide-heading-4",
+          label: "Heading 4",
+        },
+      ],
+    },
   ],
   [
     {
-      kind: 'mark',
-      mark: 'bold',
-      icon: 'i-lucide-bold'
+      kind: "mark",
+      mark: "bold",
+      icon: "i-lucide-bold",
     },
     {
-      kind: 'mark',
-      mark: 'italic',
-      icon: 'i-lucide-italic'
+      kind: "mark",
+      mark: "italic",
+      icon: "i-lucide-italic",
     },
     {
-      kind: 'mark',
-      mark: 'underline',
-      icon: 'i-lucide-underline'
+      kind: "mark",
+      mark: "underline",
+      icon: "i-lucide-underline",
     },
     {
-      kind: 'mark',
-      mark: 'strike',
-      icon: 'i-lucide-strikethrough'
+      kind: "mark",
+      mark: "strike",
+      icon: "i-lucide-strikethrough",
     },
     {
-      kind: 'mark',
-      mark: 'code',
-      icon: 'i-lucide-code'
-    }
-  ]
-] satisfies EditorToolbarItem<typeof customHandlers>[][]
+      kind: "mark",
+      mark: "code",
+      icon: "i-lucide-code",
+    },
+    {
+      kind: "highlight",
+      icon: "i-lucide-highlighter",
+      tooltip: { text: "Control + Shift + H / Cmd + Shift + H" },
+    },
+  ],
+] satisfies EditorToolbarItem<typeof customHandlers>[][];
+
+const extensions = [
+  Highlight.configure({
+    multicolor: true,
+  }),
+];
+
+const editorProps: EditorProps = {
+  attributes: {
+    spellcheck: "false",
+  },
+};
 </script>
 
 <template>
   <UEditor
     v-slot="{ editor }"
     v-model="value"
-    :extensions="[]"
+    :editor-props="editorProps"
+    :extensions="extensions"
     :handlers="customHandlers"
     content-type="markdown"
     :ui="{ base: 'p-8 sm:px-16' }"
@@ -99,9 +125,10 @@ const items = [
   >
     <UEditorToolbar
       :editor="editor"
-      :items="items"
+      :items="toolbarItems"
       class="border-b border-muted py-2 px-8 sm:px-16 overflow-x-auto"
     />
   </UEditor>
 </template>
 
+<style lang="scss" scoped></style>
