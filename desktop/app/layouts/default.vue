@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import type { NavigationMenuItem, SidebarProps } from '@nuxt/ui'
+import type { NavigationMenuItem, SidebarProps } from "@nuxt/ui";
 
-defineProps<Pick<SidebarProps, 'variant' | 'collapsible' | 'side'>>()
+defineProps<Pick<SidebarProps, "variant" | "collapsible" | "side">>();
 
-const open = ref(false)
+const open = ref(false);
 
 const items: NavigationMenuItem[] = [
   {
-    label: 'Home',
-    icon: 'i-lucide-house',
-    active: true
+    label: "Home",
+    icon: "i-lucide-house",
+    active: true,
   },
   {
-    label: 'Inbox',
-    icon: 'i-lucide-inbox',
-    badge: '4'
+    label: "Inbox",
+    icon: "i-lucide-inbox",
+    badge: "4",
   },
   {
-    label: 'Contacts',
-    icon: 'i-lucide-users'
-  }
-]
+    label: "Contacts",
+    icon: "i-lucide-users",
+  },
+];
 </script>
 
 <template>
@@ -28,7 +28,7 @@ const items: NavigationMenuItem[] = [
     class="flex flex-1 h-screen"
     :class="[
       variant === 'inset' && 'bg-neutral-50 dark:bg-neutral-950',
-      side === 'right' && 'flex-row-reverse'
+      side === 'right' && 'flex-row-reverse',
     ]"
   >
     <USidebar
@@ -37,11 +37,11 @@ const items: NavigationMenuItem[] = [
       collapsible="icon"
       :side="side"
       :ui="{
-        container: 'h-full'
+        container: 'h-full',
       }"
     >
       <template #header>
-        <UIcon name="i-logos-nuxt-icon" class="size-8" />
+        <Logo />
       </template>
 
       <UNavigationMenu
@@ -58,11 +58,13 @@ const items: NavigationMenuItem[] = [
         class="h-(--ui-header-height) shrink-0 flex items-center px-4"
         :class="[
           variant !== 'floating' && 'border-b border-default',
-          side === 'right' && 'justify-end'
+          side === 'right' && 'justify-end',
         ]"
       >
         <UButton
-          :icon="side === 'left' ? 'i-lucide-panel-left' : 'i-lucide-panel-right'"
+          :icon="
+            side === 'left' ? 'i-lucide-panel-left' : 'i-lucide-panel-right'
+          "
           color="neutral"
           variant="ghost"
           aria-label="Toggle sidebar"
@@ -76,3 +78,5 @@ const items: NavigationMenuItem[] = [
     </div>
   </div>
 </template>
+
+<style></style>

@@ -1,0 +1,10 @@
+{
+  "prompt": "A 2D minimalist icon of a faceted emerald gemstone, inspired by the Obsidian.md logo style. Symmetric isometric diamond shape, sharp clean edges, deep forest green and vibrant emerald hues. Soft gradient matte finish, subtle 3D depth without being realistic. Solid dark gray background, vector aesthetic, high contrast, geometric simplicity.",
+  "negative_prompt": "photorealistic, transparency, blurry, messy lines, complex details, shadows on background, glossy reflections, glowing effects, text, watermark",
+  "parameters": {
+    "aspect_ratio": "1:1",
+    "style": "flat_design",
+    "vibe": "minimalist_productivity_app",
+    "color_palette": ["#043927", "#0bda51", "#2e8b57"]
+  }
+}
