@@ -1,6 +1,8 @@
 <template>
-  <PageSplit>
-    <template #left> x </template>
+  <PageSplit initialWidth="55%">
+    <template #left>
+      <MarkdownEditor />
+    </template>
     <template #right>
       <UButton
         icon="i-lucide-rocket"

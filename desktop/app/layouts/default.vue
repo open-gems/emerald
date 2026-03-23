@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { NavigationMenuItem, SidebarProps } from '@nuxt/ui'
 
-// Ignore the props for the example
 defineProps<Pick<SidebarProps, 'variant' | 'collapsible' | 'side'>>()
 
-const open = ref(true)
+const open = ref(false)
 
 const items: NavigationMenuItem[] = [
   {
@@ -35,7 +34,7 @@ const items: NavigationMenuItem[] = [
     <USidebar
       v-model:open="open"
       :variant="variant"
-      :collapsible="collapsible"
+      collapsible="icon"
       :side="side"
       :ui="{
         container: 'h-full'
@@ -71,7 +70,7 @@ const items: NavigationMenuItem[] = [
         />
       </div>
 
-      <div class="flex-1 p-4">
+      <div class="flex-1">
         <slot />
       </div>
     </div>
