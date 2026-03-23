@@ -70,7 +70,8 @@ const items: NavigationMenuItem[] = [
           aria-label="Toggle sidebar"
           @click="open = !open"
         />
-      </div>
+        <UColorModeButton class="ml-auto"/>
+      </div> 
 
       <div class="flex-1">
         <slot />

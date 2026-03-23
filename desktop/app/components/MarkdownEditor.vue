@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Editor, EditorProps } from "@tiptap/vue-3";
+import type { Editor } from "@tiptap/vue-3";
 import type { EditorCustomHandlers, EditorToolbarItem } from "@nuxt/ui";
 import Highlight from "@tiptap/extension-highlight";
 
@@ -105,7 +105,7 @@ const extensions = [
   }),
 ];
 
-const editorProps: EditorProps = {
+const editorProps: any = {
   attributes: {
     spellcheck: "false",
   },
@@ -120,14 +120,20 @@ const editorProps: EditorProps = {
     :extensions="extensions"
     :handlers="customHandlers"
     content-type="markdown"
-    :ui="{ base: 'p-8 sm:px-16' }"
-    class="w-full min-h-74 p-4 pt-0"
+    :ui="{ base: 'p-6 pt-4 sm:px-16' }"
+    class="w-full min-h-74"
   >
     <UEditorToolbar
       :editor="editor"
       :items="toolbarItems"
-      class="border-b border-muted py-2 px-8 sm:px-16 overflow-x-auto"
+      color="neutral"
+      variant="ghost"
+      :ui="{
+        base: 'flex items-stretch gap-1.5 bg',
+      }"
+      class="py-2 px-8 sm:px-16 overflow-x-auto"
     />
+    <USeparator />
   </UEditor>
 </template>
 
