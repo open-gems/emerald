@@ -281,9 +281,9 @@ const IconRefresh = {
 <style scoped>
 /* ── Card shell ─────────────────────────────────────────────── */
 .card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
   overflow: hidden;
 }
 
@@ -305,15 +305,14 @@ const IconRefresh = {
 
 .card__eyebrow {
   font-family: var(--font-display);
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
+  font-size: 1rem;
   color: var(--accent);
   margin-bottom: 0.2rem;
 }
 
 .card__title {
   font-family: var(--font-display);
-  font-size: 2.4rem;
+  font-size: 2rem;
   letter-spacing: 0.04em;
   line-height: 1;
   color: var(--text-1);
@@ -412,6 +411,7 @@ const IconRefresh = {
     transform var(--ease),
     opacity var(--ease);
   outline: none;
+  cursor: pointer;
 }
 
 .option:not(:disabled):hover {

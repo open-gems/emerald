@@ -12,7 +12,7 @@
       >
     </div>
 
-    <div>
+    <div class="preview-content">
       <Quiz
         :questions="questions"
         title="Quiz"
@@ -128,13 +128,16 @@ function onComplete({ score, total, pct, answers }) {
 
 <style lang="css" scoped>
 .preview {
+  background: var(--ui-bg);
   display: flex;
   flex-direction: column;
 }
+.preview-content {
+  padding: 1rem;
+}
 
 .button-grid {
-  background: var(--ui-bg);
-  padding: 1rem 2rem;
+  padding: 1rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
