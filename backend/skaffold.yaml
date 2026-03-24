@@ -1,0 +1,35 @@
+apiVersion: skaffold/v4beta7
+kind: Config
+metadata:
+  name: monorepo-mcp
+build:
+  artifacts:
+    - image: mcp-clima-img
+      context: services/mcp-clima
+      docker:
+        dockerfile: Dockerfile
+      # Sincronización rápida de Python (evita reconstruir el contenedor si solo cambia el código)
+      sync:
+        infer:
+          - '**/*.py'
+    - image: mcp-db-img
+      context: services/mcp-db
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        infer:
+          - '**/*.py'
+deploy:
+  kubectl:
+    manifests:
+      - k8s/*.yaml
+portForward:
+ 
+  - resourceType: Service
+    resourceName: mcp-clima-svc
+    port: 80
+    localPort: 8081
+  - resourceType: Service
+    resourceName: mcp-db-svc
+    port: 80
+    localPort: 8082

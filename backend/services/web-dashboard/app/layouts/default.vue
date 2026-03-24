@@ -3,7 +3,7 @@ import type { NavigationMenuItem, SidebarProps } from "@nuxt/ui";
 
 defineProps<Pick<SidebarProps, "variant" | "collapsible" | "side">>();
 
-const open = ref(false);
+const open = ref(true);
 
 const navItems: NavigationMenuItem[] = [
   {
@@ -21,6 +21,27 @@ const navItems: NavigationMenuItem[] = [
     tooltip: {
       text: "Blocks",
     },
+    defaultOpen: true,
+    children: [
+      {
+        label: "1.2.3 Terms",
+        icon: "i-lucide-file",
+        description: "Define shortcuts for your application.",
+        to: "/",
+      },
+      {
+        label: "1.2.4 Terms",
+        icon: "i-lucide-file",
+        description: "Define shortcuts for your application.",
+        to: "/",
+      },
+      {
+        label: "1.2.6 Terms",
+        icon: "i-lucide-file",
+        description: "Define shortcuts for your application.",
+        to: "/",
+      },
+    ],
   },
   {
     label: "Contacts",
@@ -59,7 +80,6 @@ const navItems: NavigationMenuItem[] = [
         tooltip
         :collapsed="open === false"
         :ui="{
-          item: 'gap-4',
           link: 'p-1.5 overflow-hidden',
         }"
       />

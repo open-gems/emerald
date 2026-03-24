@@ -36,7 +36,7 @@ const buttons = ref([
   {
     label: "",
     color: "neutral",
-    icon: "i-lucide-settings",
+    icon: "i-lucide-bolt",
   },
   {
     label: "Quiz Questions",

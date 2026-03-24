@@ -1,5 +1,5 @@
 <template>
-  <PageSplit initialWidth="55%">
+  <PageSplit initialWidth="60%">
     <template #left>
       <MarkdownEditor />
     </template>
