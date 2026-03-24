@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-document
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-document
+  template:
+    metadata:
+      labels:
+        app: mcp-document
+    spec:
+      containers:
+      - name: mcp-document
+        image: mcp-document-img 
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-document-svc
+spec:
+  selector:
+    app: mcp-document
+  ports:
+  - port: 80
+    targetPort: 8000

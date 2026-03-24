@@ -29,17 +29,12 @@ import { ref } from "vue";
 
 const buttons = ref([
   {
-    label: "All",
+    label: "",
     color: "neutral",
     icon: "i-lucide-menu",
   },
   {
-    label: "",
-    color: "neutral",
-    icon: "i-lucide-bolt",
-  },
-  {
-    label: "Quiz Questions",
+    label: "Quiz",
     color: "success",
     icon: "i-lucide-book-open-check",
   },
@@ -139,7 +134,7 @@ function onComplete({ score, total, pct, answers }) {
 
 .button-grid {
   background: var(--ui-bg);
-  padding: 1rem;
+  padding: 1rem 2rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
