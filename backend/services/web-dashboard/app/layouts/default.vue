@@ -26,7 +26,7 @@ const navItems: NavigationMenuItem[] = [
     children: [
       {
         label: "Acuerdo 001 de 2024",
-        icon: "i-lucide-file",
+        icon: "i-lucide-folder",
         description: "Define shortcuts for your application.",
         tooltip: {
           text: "Acuerdo 001 de 2024",
@@ -40,7 +40,7 @@ const navItems: NavigationMenuItem[] = [
             to: "/",
           },
           {
-            label: "1.2.6 Terms",
+            label: "1.2.6 Normativa",
             icon: "i-lucide-file",
             description: "Define shortcuts for your application.",
             to: "/",
