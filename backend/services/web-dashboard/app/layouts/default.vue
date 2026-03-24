@@ -5,20 +5,29 @@ defineProps<Pick<SidebarProps, "variant" | "collapsible" | "side">>();
 
 const open = ref(false);
 
-const items: NavigationMenuItem[] = [
+const navItems: NavigationMenuItem[] = [
   {
     label: "Home",
     icon: "i-lucide-house",
-    active: true,
+    to: "/",
+    tooltip: {
+      text: "Home",
+    },
   },
   {
-    label: "Inbox",
-    icon: "i-lucide-inbox",
-    badge: "4",
+    label: "Blocks",
+    icon: "i-lucide-box",
+    to: "/blocks",
+    tooltip: {
+      text: "Blocks",
+    },
   },
   {
     label: "Contacts",
     icon: "i-lucide-users",
+    tooltip: {
+      text: "Contacts",
+    },
   },
 ];
 </script>
@@ -45,9 +54,14 @@ const items: NavigationMenuItem[] = [
       </template>
 
       <UNavigationMenu
-        :items="items"
+        :items="navItems"
         orientation="vertical"
-        :ui="{ link: 'p-1.5 overflow-hidden' }"
+        tooltip
+        :collapsed="open === false"
+        :ui="{
+          item: 'gap-4',
+          link: 'p-1.5 overflow-hidden',
+        }"
       />
     </USidebar>
 
@@ -70,8 +84,8 @@ const items: NavigationMenuItem[] = [
           aria-label="Toggle sidebar"
           @click="open = !open"
         />
-        <UColorModeButton class="ml-auto"/>
-      </div> 
+        <UColorModeButton class="ml-auto" />
+      </div>
 
       <div class="flex-1">
         <slot />
