@@ -20,7 +20,7 @@ const contextItems: ContextMenuItem[][] = [
   [
     {
       label: "File upload",
-      icon: "i-lucide-file-up", //<
+      icon: "i-lucide-file-up", //
     },
     {
       label: "Folder upload",
@@ -32,7 +32,7 @@ const contextItems: ContextMenuItem[][] = [
 
 <template>
   <div class="index-page">
-    <div class="index-page-header">
+    <div class="index-page-header" v-if="false">
       <UBreadcrumb
         :items="breadItems"
         :ui="{
