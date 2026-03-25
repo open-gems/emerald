@@ -23,7 +23,6 @@ from .router import router
 
 class FolderCreate(BaseModel):
     name: str = Field(..., max_length=100)
-    user_id: UUID
 
 @router.post("/create-folder", status_code=status.HTTP_201_CREATED)
 async def create_folder_endpoint(params: FolderCreate, request: Request):
@@ -38,9 +37,10 @@ async def create_folder_endpoint(params: FolderCreate, request: Request):
     
     # 2. Prepare additional metadata and folder properties
     # Using UUID v7 for time-sortable unique identifiers
+    user_id = "019d2612-a01d-734c-ab63-917106f31187" #TODO: authentication
     folder_id = uuid7()
     folder_status = "created"
-    storage_path = f"/storage/{params.user_id}/{folder_id}"
+    storage_path = f"/storage/{user_id}/{folder_id}"
     now_timestamp = int(time.time() * 1000)
     initial_v = 0
     
@@ -59,7 +59,7 @@ async def create_folder_endpoint(params: FolderCreate, request: Request):
                 row = await connection.fetchrow(
                     query,
                     folder_id,
-                    params.user_id,
+                    user_id,
                     folder_status,
                     params.name,
                     storage_path,
