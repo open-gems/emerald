@@ -5,11 +5,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./app ./app
+COPY . .
 
 EXPOSE 8001
 
-CMD ["sh", "-c", "gunicorn app.main:app \
+CMD ["sh", "-c", "gunicorn main:app \
 -k uvicorn.workers.UvicornWorker \
 -w ${APP_WORKERS:-1} \
 -b ${APP_HOST:-0.0.0.0}:${APP_PORT:-8001} \
