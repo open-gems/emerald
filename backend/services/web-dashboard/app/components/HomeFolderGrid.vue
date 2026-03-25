@@ -10,19 +10,42 @@
          TOP BAR
     ════════════════════════════════════════════════ -->
     <header class="topbar">
-
       <label class="topbar-search">
         <IconSearch class="ico-search" :size="15" />
-        <input v-model="search" type="text" placeholder="Buscar en Archive…" />
+        <UInput
+          v-model="search"
+          icon="i-lucide-search"
+          size="lg"
+          variant="outline"
+          color="secondary"
+          placeholder="Search..."
+        />
       </label>
 
       <div class="topbar-actions">
-        <ViewToggle v-model="view" />
+        <UFieldGroup size="md">
+          <UButton
+            :color="view === 'list' ? 'primary' : 'neutral'"
+            variant="outline"
+            icon="i-lucide-text-align-justify"
+            @click="view = 'list'"
+          />
+          <UButton
+            :color="view === 'grid' ? 'primary' : 'neutral'"
+            variant="outline"
+            icon="i-lucide-layout-grid"
+            @click="view = 'grid'"
+          />
+        </UFieldGroup>
 
-        <button class="btn-new" @click.stop="modal.openCreate()">
-          <IconPlus :size="14" />
-          <span>Nueva carpeta</span>
-        </button>
+        <UButton
+          color="primary"
+          variant="outline"
+          icon="i-lucide-plus"
+          label="New folder"
+          size="md"
+          @click.stop="modal.openCreate()"
+        />
       </div>
     </header>
 
@@ -30,37 +53,6 @@
          MAIN LAYOUT
     ════════════════════════════════════════════════ -->
     <div class="main">
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <nav>
-          <button
-            v-for="item in NAV_ITEMS"
-            :key="item.label"
-            class="sidebar-item"
-            :class="{ active: activeNav === item.label }"
-            @click.stop="activeNav = item.label"
-          >
-            <IconPath :d="item.icon" :size="17" />
-            {{ item.label }}
-          </button>
-        </nav>
-
-        <div class="sidebar-divider" />
-        <p class="sidebar-label">Etiquetas</p>
-
-        <button
-          v-for="tag in TAGS"
-          :key="tag.label"
-          class="sidebar-item"
-          @click.stop
-        >
-          <span class="color-dot" :style="{ background: tag.color }" />
-          {{ tag.label }}
-        </button>
-
-        <StorageBar :used="5.7" :total="15" />
-      </aside>
-
       <!-- Content -->
       <main class="content" @click.stop="ctxMenu.close()">
         <Breadcrumb :crumbs="['Mi unidad', activeNav]" />
@@ -148,10 +140,6 @@ import {
   h,
 } from "vue";
 import Sortable from "sortablejs";
-
-// ─────────────────────────────────────────────────────────────
-// CONSTANTS & SEED DATA
-// ─────────────────────────────────────────────────────────────
 
 const FOLDER_COLORS = [
   "#d97845",
@@ -499,29 +487,6 @@ const IconSearch = defineComponent({
   },
 });
 
-const IconPlus = defineComponent({
-  props: { size: { type: Number, default: 14 } },
-  setup(props) {
-    return () =>
-      h(
-        "svg",
-        {
-          width: props.size,
-          height: props.size,
-          viewBox: "0 0 24 24",
-          fill: "none",
-          stroke: "currentColor",
-          "stroke-width": 2.5,
-          "stroke-linecap": "round",
-        },
-        [
-          h("line", { x1: 12, y1: 5, x2: 12, y2: 19 }),
-          h("line", { x1: 5, y1: 12, x2: 19, y2: 12 }),
-        ],
-      );
-  },
-});
-
 /** Folder SVG icon (used in cards & rows) */
 const FolderIcon = defineComponent({
   props: { color: String, size: { type: Number, default: 56 } },
@@ -603,65 +568,6 @@ const MenuDots = defineComponent({
   },
 });
 
-/** ViewToggle button group */
-const ViewToggle = defineComponent({
-  props: { modelValue: String },
-  emits: ["update:modelValue"],
-  setup(props, { emit }) {
-    const gridPath = "M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z";
-    const listPath = [
-      h("line", { x1: 8, y1: 6, x2: 21, y2: 6 }),
-      h("line", { x1: 8, y1: 12, x2: 21, y2: 12 }),
-      h("line", { x1: 8, y1: 18, x2: 21, y2: 18 }),
-      h("line", { x1: 3, y1: 6, x2: "3.01", y2: 6 }),
-      h("line", { x1: 3, y1: 12, x2: "3.01", y2: 12 }),
-      h("line", { x1: 3, y1: 18, x2: "3.01", y2: 18 }),
-    ];
-    return () =>
-      h("div", { class: "view-toggle" }, [
-        h(
-          "button",
-          {
-            class: ["vt-btn", props.modelValue === "grid" && "active"],
-            title: "Cuadrícula",
-            onClick: () => emit("update:modelValue", "grid"),
-          },
-          h(
-            "svg",
-            {
-              width: 16,
-              height: 16,
-              viewBox: "0 0 24 24",
-              fill: "currentColor",
-            },
-            h("path", { d: gridPath }),
-          ),
-        ),
-        h(
-          "button",
-          {
-            class: ["vt-btn", props.modelValue === "list" && "active"],
-            title: "Lista",
-            onClick: () => emit("update:modelValue", "list"),
-          },
-          h(
-            "svg",
-            {
-              width: 16,
-              height: 16,
-              viewBox: "0 0 24 24",
-              fill: "none",
-              stroke: "currentColor",
-              "stroke-width": 2,
-              "stroke-linecap": "round",
-            },
-            listPath,
-          ),
-        ),
-      ]);
-  },
-});
-
 /** Breadcrumb */
 const Breadcrumb = defineComponent({
   props: { crumbs: Array },
@@ -677,33 +583,6 @@ const Breadcrumb = defineComponent({
           return nodes;
         }),
       );
-  },
-});
-
-/** StorageBar */
-const StorageBar = defineComponent({
-  props: { used: Number, total: Number },
-  setup(props) {
-    const pct = computed(() =>
-      Math.min(100, (props.used / props.total) * 100).toFixed(1),
-    );
-    return () =>
-      h("div", { class: "storage-block" }, [
-        h("p", { class: "storage-label" }, "Almacenamiento"),
-        h(
-          "div",
-          { class: "storage-bar" },
-          h("div", {
-            class: "storage-fill",
-            style: { width: pct.value + "%" },
-          }),
-        ),
-        h(
-          "p",
-          { class: "storage-info" },
-          `${props.used} GB de ${props.total} GB usados`,
-        ),
-      ]);
   },
 });
 
@@ -958,7 +837,7 @@ const ToastStack = defineComponent({
 /* ── Design Tokens ──────────────────────────────────────────── */
 .drive-shell {
   --bg: var(--ui-bg);
-  --surface: var(--ui-bg-muted);
+  --surface: var(--ui-bg);
   --card: var(--ui-bg-muted);
   --border: var(--ui-border);
   --accent: var(--ui-primary);
@@ -1062,33 +941,6 @@ const ToastStack = defineComponent({
   color: var(--text);
 }
 
-/* ── New Folder Btn ─────────────────────────────────────────── */
-.btn-new {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 8px 16px;
-  font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    background var(--ease),
-    transform var(--ease);
-}
-.btn-new:hover {
-  background: #c96835;
-  transform: translateY(-1px);
-}
-.btn-new:active {
-  transform: none;
-}
-
 /* ── Layout ─────────────────────────────────────────────────── */
 .main {
   display: flex;
@@ -1096,67 +948,6 @@ const ToastStack = defineComponent({
 }
 
 /* ── Sidebar ────────────────────────────────────────────────── */
-.sidebar {
-  width: 220px;
-  flex-shrink: 0;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  padding: 20px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-:deep(.sidebar-item) {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 12px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: none;
-  font-family: var(--font-ui);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--muted);
-  cursor: pointer;
-  transition:
-    background var(--ease),
-    color var(--ease);
-  text-align: left;
-  user-select: none;
-}
-:deep(.sidebar-item:hover) {
-  background: var(--bg);
-  color: var(--text);
-}
-:deep(.sidebar-item.active) {
-  background: rgba(217, 120, 69, 0.12);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.sidebar-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 12px 4px;
-}
-.sidebar-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  padding: 0 12px;
-  margin-bottom: 4px;
-}
-
-:deep(.color-dot) {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
 
 :deep(.storage-block) {
   margin-top: auto;

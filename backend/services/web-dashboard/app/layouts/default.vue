@@ -150,7 +150,6 @@ const navItems: NavigationMenuItem[] = [
           link: 'p-1.5 overflow-hidden',
         }"
       >
-
       </UNavigationMenu>
     </USidebar>
 
@@ -174,6 +173,7 @@ const navItems: NavigationMenuItem[] = [
           @click="open = !open"
         />
         <UColorModeButton class="ml-auto" />
+        <UButton icon="i-lucide-bolt" variant="ghost" color="neutral" />
       </div>
 
       <div class="flex-1">

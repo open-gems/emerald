@@ -16,17 +16,7 @@ const contextItems: ContextMenuItem[][] = [
       label: "New folder",
       icon: "i-lucide-folder-plus",
     },
-  ],
-  [
-    {
-      label: "File upload",
-      icon: "i-lucide-file-up", //
-    },
-    {
-      label: "Folder upload",
-      icon: "i-lucide-folder-up",
-    },
-  ],
+  ]
 ];
 </script>
 
@@ -45,7 +35,7 @@ const contextItems: ContextMenuItem[][] = [
       </UBreadcrumb>
     </div>
 
-    <UContextMenu :items="contextItems" :ui="{ content: 'w-60' }">
+    <UContextMenu disabled :items="contextItems" :ui="{ content: 'w-60' }">
       <HomeFolderGrid />
     </UContextMenu>
   </div>
