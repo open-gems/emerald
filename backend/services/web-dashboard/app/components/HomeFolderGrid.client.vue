@@ -91,7 +91,7 @@
         <!-- ── Grid view ── -->
         <div v-if="view === 'grid'" ref="gridRef" class="folder-grid">
           <FolderCard
-            v-for="folder in filteredFolders"
+            v-for="folder in documentStore.filteredFolders"
             :key="folder.id"
             :folder="folder"
             :selected="selectedId === folder.id"
@@ -101,15 +101,15 @@
             @menu="(e) => ctxMenu.open(e, folder)"
           />
 
-          <EmptyState v-if="filteredFolders.length === 0" />
+          <EmptyState v-if="documentStore.filteredFolders.length === 0" />
         </div>
 
         <!-- ── List view ── -->
         <div v-else ref="listRef" class="folder-list">
-          <ListHeader v-if="filteredFolders.length > 0" />
+          <ListHeader v-if="documentStore.filteredFolders.length > 0" />
 
           <FolderRow
-            v-for="folder in filteredFolders"
+            v-for="folder in documentStore.filteredFolders"
             :key="folder.id"
             :folder="folder"
             :selected="selectedId === folder.id"
@@ -119,7 +119,7 @@
             @menu="(e) => ctxMenu.open(e, folder)"
           />
 
-          <EmptyState v-if="filteredFolders.length === 0" />
+          <EmptyState v-if="documentStore.filteredFolders.length === 0" />
         </div>
       </main>
     </div>
@@ -162,7 +162,14 @@ import {
 } from "vue";
 import Sortable from "sortablejs";
 
+const documentStore = useDocumentStore()
+
+
+
 const newFolderName = ref("Untitled folder")
+
+
+
 
 const FOLDER_COLORS = [
   "#d97845",
@@ -415,28 +422,6 @@ function handleCtxDelete() {
 // INLINE SUB-COMPONENTS  (single-file, no extra imports needed)
 // ─────────────────────────────────────────────────────────────
 
-/** Primitive icon wrappers */
-const IconPath = defineComponent({
-  props: { d: String, size: { type: Number, default: 18 } },
-  setup(props) {
-    return () =>
-      h(
-        "svg",
-        {
-          width: props.size,
-          height: props.size,
-          viewBox: "0 0 24 24",
-          fill: "none",
-          stroke: "currentColor",
-          "stroke-width": 1.8,
-          "stroke-linecap": "round",
-          "stroke-linejoin": "round",
-        },
-        [h("path", { d: props.d })],
-      );
-  },
-});
-
 const IconSearch = defineComponent({
   props: { size: { type: Number, default: 15 } },
   setup(props) {
@@ -559,7 +544,6 @@ const Breadcrumb = defineComponent({
   },
 });
 
-/** FolderCard (grid mode) */
 const FolderCard = defineComponent({
   props: { folder: Object, selected: Boolean },
   emits: ["click", "dblclick", "contextmenu", "menu"],
@@ -575,7 +559,6 @@ const FolderCard = defineComponent({
           onContextmenu: (e) => emit("contextmenu", e),
         },
         [
-          h("span", { class: "drag-grip", title: "Arrastrar" }, "⠿"),
           h(MenuDots, { onMenuClick: (e) => emit("menu", e) }),
           h(
             "div",
@@ -583,7 +566,7 @@ const FolderCard = defineComponent({
             h(FolderIcon, { color: props.folder.color }),
           ),
           h("p", { class: "card-name" }, props.folder.name),
-          h("p", { class: "card-meta" }, `${props.folder.items} elementos`),
+          h("p", { class: "card-meta" }, `${props.folder.document_count} elementos`),
         ],
       );
   },
@@ -1032,21 +1015,6 @@ const ToastStack = defineComponent({
 :deep(.card-meta) {
   font-size: 11px;
   color: var(--muted);
-}
-
-:deep(.drag-grip) {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  font-size: 14px;
-  color: var(--muted);
-  opacity: 0;
-  cursor: grab;
-  transition: opacity var(--ease);
-  user-select: none;
-}
-:deep(.folder-card:hover .drag-grip) {
-  opacity: 1;
 }
 
 /* ── Folder Row ─────────────────────────────────────────────── */
