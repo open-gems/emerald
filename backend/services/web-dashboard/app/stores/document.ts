@@ -35,10 +35,9 @@ export const useDocumentStore = defineStore("document", () => {
     },
   ];
 
-
   const folders = ref(fakeFolders);
-  const pending = ref(false)
-  const error = ref(null)
+  const pending = ref(false);
+  const error = ref(null);
 
   const filteredFolders = computed(() =>
     folders.value.filter((folder) => folder.status === "created"),
@@ -57,5 +56,24 @@ export const useDocumentStore = defineStore("document", () => {
     }
   }
 
-  return { folders, pending, error, filteredFolders, getFolders };
+  async function createFolder(name: string, color: string) {
+    pending.value = true;
+    error.value = null;
+
+    try {
+      const response = await $fetch("/api/document/create-folder", {
+        method: "POST",
+        body: { name, color },
+      });
+
+      await getFolders();
+      return response;
+    } catch (e: any) {
+      error.value = e;
+    } finally {
+      pending.value = false;
+    }
+  }
+
+  return { folders, pending, error, filteredFolders, getFolders, createFolder };
 });

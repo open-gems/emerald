@@ -64,6 +64,18 @@
                 :maxlength="100"
                 autofocus
               />
+
+              <UPopover>
+                <UButton label="Color" color="neutral" variant="outline">
+                  <template #leading>
+                    <span :style="chip" class="size-3 rounded-full" />
+                  </template>
+                </UButton>
+
+                <template #content>
+                  <UColorPicker v-model="color" class="p-2" format="hex"/>
+                </template>
+              </UPopover>
             </div>
           </template>
           <template #footer="{ close }">
@@ -73,7 +85,11 @@
               variant="outline"
               @click="close"
             />
-            <UButton label="Create" color="neutral" />
+            <UButton
+              label="Create"
+              color="neutral"
+              @click="onCreateFolder(close)"
+            />
           </template>
         </UModal>
       </div>
@@ -162,14 +178,23 @@ import {
 } from "vue";
 import Sortable from "sortablejs";
 
-const documentStore = useDocumentStore()
+const documentStore = useDocumentStore();
 
+const newFolderName = ref("Untitled folder");
+const newFolderColor = ref("blue");
 
+const color = ref('#00C16A')
+const chip = computed(() => ({ backgroundColor: color.value }))
 
-const newFolderName = ref("Untitled folder")
-
-
-
+const onCreateFolder = async (close) => {
+  try {
+    await documentStore.createFolder(newFolderName.value, newFolderColor.value);
+  } catch (e) {
+    console.error(e); //TODO: TOAST
+  } finally {
+    close();
+  }
+};
 
 const FOLDER_COLORS = [
   "#d97845",
@@ -560,7 +585,11 @@ const FolderCard = defineComponent({
             h(FolderIcon, { color: props.folder.color }),
           ),
           h("p", { class: "card-name" }, props.folder.name),
-          h("p", { class: "card-meta" }, `${props.folder.document_count} elementos`),
+          h(
+            "p",
+            { class: "card-meta" },
+            `${props.folder.document_count} elementos`,
+          ),
         ],
       );
   },
