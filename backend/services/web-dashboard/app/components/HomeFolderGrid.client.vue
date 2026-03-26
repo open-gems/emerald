@@ -201,12 +201,6 @@ const NAV_ITEMS = [
   { label: "Papelera", icon: "M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" },
 ];
 
-const TAGS = [
-  { label: "Urgente", color: "#c95e6e" },
-  { label: "Personal", color: "#5b7fa6" },
-  { label: "Trabajo", color: "#6aab8e" },
-];
-
 const SEED_FOLDERS = [
   ["Proyectos 2025", "#d97845"],
   ["Diseño UI", "#5b7fa6"],

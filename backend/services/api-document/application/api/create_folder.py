@@ -15,7 +15,6 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import time
-from uuid import UUID
 from uuid6 import uuid7
 from pydantic import BaseModel, Field
 from fastapi import Request, HTTPException, status
@@ -23,9 +22,10 @@ from .router import router
 
 class FolderCreate(BaseModel):
     name: str = Field(..., max_length=100)
+    color: str =  Field(..., max_length=10)
 
 @router.post("/create-folder", status_code=status.HTTP_201_CREATED)
-async def create_folder_endpoint(params: FolderCreate, request: Request):
+async def create_folder_endpoint(params: FolderCreate, request: Request): #TODO: add Response scheme
     """
     Endpoint to create a new folder record in the database.
     Generates a unique UUID v7 and sets initial metadata.
@@ -41,15 +41,16 @@ async def create_folder_endpoint(params: FolderCreate, request: Request):
     folder_id = uuid7()
     folder_status = "created"
     storage_path = f"/storage/{user_id}/{folder_id}"
+    color = params.color
     now_timestamp = int(time.time() * 1000)
     initial_v = 0
     
     # 3. Define the SQL insertion query with a RETURNING clause for the created record
     query = """
     INSERT INTO folders (
-        id, user_id, status, name, storage_path, created_at, v
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-    RETURNING id, name, storage_path, created_at, v;
+        id, user_id, status, name, storage_path, color, created_at, v
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING id, name, status, storage_path, color, created_at;
     """
     
     async with pool.acquire() as connection:
@@ -63,6 +64,7 @@ async def create_folder_endpoint(params: FolderCreate, request: Request):
                     folder_status,
                     params.name,
                     storage_path,
+                    color,
                     now_timestamp,
                     initial_v
                 )

@@ -5,6 +5,7 @@ CREATE TABLE
         status VARCHAR(20),
         name VARCHAR(100) NOT NULL,
         storage_path TEXT NOT NULL,
+        color VARCHAR(10) NOT NULL,
         
         created_at BIGINT DEFAULT NULL,
         readed_at BIGINT DEFAULT NULL,

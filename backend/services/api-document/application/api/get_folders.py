@@ -10,6 +10,8 @@ class FolderResponse(BaseModel):
     status: str
     name: str
     storage_path: str
+    color: str
+    document_count: int
     created_at: Optional[int]
     readed_at: Optional[int]
     updated_at: Optional[int]
@@ -33,7 +35,15 @@ async def get_folders_endpoint(
 
     # SQL query to fetch active folders ordered by creation date (newest first)
     query = """
-    SELECT id, user_id, status, name, storage_path, created_at, readed_at, updated_at, deleted_at, v
+    SELECT 
+        id, user_id, status, name, storage_path, color, 
+        created_at, readed_at, updated_at, deleted_at, v,
+        (
+            SELECT COUNT(*)::int 
+            FROM documents d 
+            WHERE d.folder_id = folders.id 
+              AND d.deleted_at IS NULL
+        ) AS document_count
     FROM folders
     WHERE user_id = $1 AND deleted_at IS NULL
     ORDER BY created_at DESC
