@@ -149,11 +149,8 @@
             :selected="selectedId === folder.id"
             @click.stop="selectedId = toggle(selectedId, folder.id)"
             @dblclick="toast(`Abriendo «${folder.name}»…`)"
-            @contextmenu.prevent="(e) => ctxMenu.open(e, folder)"
             @menu="(e) => ctxMenu.open(e, folder)"
           />
-
-          <EmptyState v-if="documentStore.filteredFolders.length === 0" />
         </div>
 
         <!-- ── List view ── -->
@@ -170,9 +167,9 @@
             @contextmenu.prevent="(e) => ctxMenu.open(e, folder)"
             @menu="(e) => ctxMenu.open(e, folder)"
           />
-
-          <EmptyState v-if="documentStore.filteredFolders.length === 0" />
         </div>
+
+        <HomeEmptyFolders v-if="documentStore.filteredFolders.length === 0" />
       </main>
     </div>
 
@@ -238,9 +235,8 @@ const breadItems = [
     label: "Home",
     icon: "i-lucide-home",
     to: "/",
-  }
+  },
 ];
-
 
 const FOLDER_COLORS = [
   "#d97845",
@@ -591,38 +587,6 @@ const MenuDots = defineComponent({
   },
 });
 
-const FolderCard = defineComponent({
-  props: { folder: Object, selected: Boolean },
-  emits: ["click", "dblclick", "contextmenu", "menu"],
-  setup(props, { emit }) {
-    return () =>
-      h(
-        "div",
-        {
-          class: ["folder-card", props.selected && "selected"],
-          "data-id": props.folder.id,
-          onClick: (e) => emit("click", e),
-          onDblclick: (e) => emit("dblclick", e),
-          onContextmenu: (e) => emit("contextmenu", e),
-        },
-        [
-          h(MenuDots, { onMenuClick: (e) => emit("menu", e) }),
-          h(
-            "div",
-            { class: "card-icon" },
-            h(FolderIcon, { color: props.folder.color }),
-          ),
-          h("p", { class: "card-name" }, props.folder.name),
-          h(
-            "p",
-            { class: "card-meta" },
-            `${props.folder.document_count} elementos`,
-          ),
-        ],
-      );
-  },
-});
-
 /** ListHeader */
 const ListHeader = defineComponent({
   setup() {
@@ -663,127 +627,6 @@ const FolderRow = defineComponent({
           h("span", { class: "row-date" }, props.folder.modified),
           h(MenuDots, { onMenuClick: (e) => emit("menu", e) }),
         ],
-      );
-  },
-});
-
-/** EmptyState */
-const EmptyState = defineComponent({
-  setup() {
-    return () =>
-      h("div", { class: "empty-state" }, [
-        h(
-          "svg",
-          {
-            width: 56,
-            height: 56,
-            viewBox: "0 0 24 24",
-            fill: "none",
-            stroke: "currentColor",
-            "stroke-width": 1.2,
-          },
-          [
-            h("path", {
-              d: "M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z",
-            }),
-          ],
-        ),
-        h("p", {}, "No se encontraron carpetas"),
-      ]);
-  },
-});
-
-/** ContextMenu */
-const ContextMenu = defineComponent({
-  props: { x: Number, y: Number },
-  emits: ["open", "rename", "duplicate", "delete", "close"],
-  setup(props, { emit }) {
-    const items = [
-      {
-        label: "Abrir",
-        event: "open",
-        icon: "M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z",
-      },
-      {
-        label: "Renombrar",
-        event: "rename",
-        icon: "M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z",
-      },
-      {
-        label: "Duplicar",
-        event: "duplicate",
-        icon: "M9 9h13v13H9zM5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1",
-      },
-    ];
-    return () =>
-      h(
-        "div",
-        {
-          class: "ctx-menu",
-          style: { top: props.y + "px", left: props.x + "px" },
-          onClick: (e) => e.stopPropagation(),
-        },
-        [
-          ...items.map((it) =>
-            h("button", { class: "ctx-item", onClick: () => emit(it.event) }, [
-              h(
-                "svg",
-                {
-                  width: 15,
-                  height: 15,
-                  viewBox: "0 0 24 24",
-                  fill: "none",
-                  stroke: "currentColor",
-                  "stroke-width": 2,
-                  "stroke-linecap": "round",
-                  "stroke-linejoin": "round",
-                },
-                h("path", { d: it.icon }),
-              ),
-              it.label,
-            ]),
-          ),
-          h("div", { class: "ctx-divider" }),
-          h(
-            "button",
-            { class: "ctx-item danger", onClick: () => emit("delete") },
-            [
-              h(
-                "svg",
-                {
-                  width: 15,
-                  height: 15,
-                  viewBox: "0 0 24 24",
-                  fill: "none",
-                  stroke: "currentColor",
-                  "stroke-width": 2,
-                  "stroke-linecap": "round",
-                  "stroke-linejoin": "round",
-                },
-                [
-                  h("polyline", { points: "3 6 5 6 21 6" }),
-                  h("path", {
-                    d: "M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2",
-                  }),
-                ],
-              ),
-              "Eliminar",
-            ],
-          ),
-        ],
-      );
-  },
-});
-
-/** ToastStack */
-const ToastStack = defineComponent({
-  props: { toasts: Array },
-  setup(props) {
-    return () =>
-      h(
-        "div",
-        { class: "toast-wrap" },
-        props.toasts.map((t) => h("div", { key: t.id, class: "toast" }, t.msg)),
       );
   },
 });
@@ -940,7 +783,6 @@ const ToastStack = defineComponent({
   flex: 1;
   overflow: auto;
   padding: 1rem;
- 
 }
 
 /* ── Grid ───────────────────────────────────────────────────── */
@@ -956,6 +798,7 @@ const ToastStack = defineComponent({
   display: flex;
   flex-direction: column;
   gap: 2px;
+  margin-top: 1rem;
 }
 
 :deep(.list-header) {
@@ -990,44 +833,9 @@ const ToastStack = defineComponent({
   text-align: right;
 }
 
-/* ── Folder Card ────────────────────────────────────────────── */
-:deep(.folder-card) {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px 14px 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  position: relative;
-  transition:
-    box-shadow var(--ease),
-    transform var(--ease),
-    border-color var(--ease);
-  user-select: none;
-}
-:deep(.folder-card:hover) {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-  border-color: transparent;
-}
-:deep(.folder-card.selected) {
-  border-color: var(--accent2);
-  box-shadow: 0 0 0 2px var(--accent2);
-}
-:deep(.folder-card.sortable-ghost) {
-  opacity: 0.35;
-}
-:deep(.folder-card.sortable-chosen) {
-  box-shadow: var(--shadow-md);
-}
-
 :deep(.card-icon) {
   width: 60px;
   height: 60px;
-
 }
 :deep(.card-name) {
   font-size: 13px;
@@ -1114,7 +922,7 @@ const ToastStack = defineComponent({
   display: flex;
   align-items: center;
 }
-:deep(.folder-card:hover .card-menu),
+:deep(.card-menu),
 :deep(.folder-row:hover .card-menu) {
   opacity: 1;
 }
@@ -1124,133 +932,6 @@ const ToastStack = defineComponent({
 }
 :deep(.folder-row .card-menu) {
   position: static;
-}
-
-/* ── Empty State ────────────────────────────────────────────── */
-:deep(.empty-state) {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 60px 20px;
-  color: var(--muted);
-  text-align: center;
-  opacity: 0.5;
-}
-
-/* ── Context Menu ───────────────────────────────────────────── */
-:deep(.ctx-menu) {
-  position: fixed;
-  z-index: 300;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-md);
-  padding: 6px;
-  min-width: 160px;
-}
-:deep(.ctx-item) {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 12px;
-  border-radius: 6px;
-  font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-  border: none;
-  background: none;
-  cursor: pointer;
-  transition: background var(--ease);
-}
-:deep(.ctx-item:hover) {
-  background: var(--bg);
-}
-:deep(.ctx-item.danger) {
-  color: #c0392b;
-}
-:deep(.ctx-item.danger:hover) {
-  background: rgba(192, 57, 43, 0.08);
-}
-:deep(.ctx-divider) {
-  height: 1px;
-  background: var(--border);
-  margin: 4px 0;
-}
-
-:deep(.btn-cancel) {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 8px 16px;
-  font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  color: var(--text);
-  transition: background var(--ease);
-}
-:deep(.btn-cancel:hover) {
-  background: var(--border);
-}
-:deep(.btn-create) {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 8px 16px;
-  font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--ease);
-}
-:deep(.btn-create:hover) {
-  background: #c96835;
-}
-
-/* ── Toast Stack ────────────────────────────────────────────── */
-:deep(.toast-wrap) {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 400;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-  pointer-events: none;
-}
-:deep(.toast) {
-  background: var(--text);
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 500;
-  animation:
-    toastIn 0.25s ease,
-    toastOut 0.3s ease 1.7s forwards;
-  pointer-events: auto;
-}
-@keyframes toastIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes toastOut {
-  to {
-    opacity: 0;
-  }
 }
 
 /* ── Responsive ─────────────────────────────────────────────── */
