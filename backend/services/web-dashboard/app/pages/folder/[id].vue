@@ -2,7 +2,9 @@
 import type { ContextMenuItem } from "@nuxt/ui";
 
 const route = useRoute();
-const id = route.params.id;
+
+const folderId = route.params.id as string;
+const folderName = route.query.folderName as string;
 
 const documentStore = useDocumentStore();
 
@@ -12,26 +14,30 @@ const contextItems: ContextMenuItem[][] = [
   [
     {
       label: "File upload",
-      icon: "i-lucide-file-upload",
+      icon: "i-lucide-file-up",
       onSelect(e: Event) {
-        openNewFolderDialog();
+        openFileUploadDialog();
       },
     },
   ],
 ];
 
-const folderGridRef: any = ref(null);
+const fileGridRef: any = ref(null);
 
-function openNewFolderDialog() {
-  if (folderGridRef.value) {
-    folderGridRef.value?.openNewFolderDialog();
+function openFileUploadDialog() {
+  if (fileGridRef.value) {
+    fileGridRef.value?.openFileUploadDialog();
   }
 }
 </script>
 <template>
   <div class="folder-page">
     <UContextMenu :items="contextItems" :ui="{ content: 'w-60' }">
-      <HomeFolderGrid ref="folderGridRef" />
+      <HomeFileGrid
+        ref="fileGridRef"
+        :folderId="folderId"
+        :folderName="folderName"
+      />
     </UContextMenu>
   </div>
 </template>

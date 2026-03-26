@@ -32,7 +32,7 @@
           />
         </UFieldGroup>
         <UModal
-          v-model:open="newFolderDialog"
+          v-model:open="fileUploadDialog"
           title="New folder"
           :ui="{
             content: 'w-auto max-w-fit',
@@ -46,7 +46,7 @@
             icon="i-lucide-plus"
             label="New folder"
             size="md"
-            @click="newFolderDialog"
+            @click="fileUploadDialog"
           />
 
           <template #body>
@@ -136,13 +136,13 @@
 
         <!-- ── Grid view ── -->
         <div v-if="view === 'grid'" ref="gridRef" class="folder-grid">
-          <FolderCard
+          <FileCard
             v-for="folder in documentStore.filteredFolders"
             :key="folder.id"
             :folder="folder"
             :selected="selectedId === folder.id"
             @click.stop="selectedId = folder.id"
-            @dblclick="onFolderOpen(folder.id, folder.name)"
+            @dblclick="onFolderOpen(folder.id)"
             @menu="(e) => console.log(e)"
           />
         </div>
@@ -180,11 +180,24 @@ import {
   h,
 } from "vue";
 import Sortable from "sortablejs";
-const router = useRouter()
+
+const props = defineProps({
+  folderId: {
+    type: String,
+    default: null,
+  },
+
+  folderName: {
+    type: String,
+    default: null,
+  },
+});
+
+const router = useRouter();
 
 const documentStore = useDocumentStore();
 
-const newFolderDialog = ref(false);
+const fileUploadDialog = ref(false);
 const newFolderName = ref("Untitled folder");
 const newFolderColor = ref("#e0a84b");
 
@@ -208,15 +221,14 @@ const breadItems = [
     icon: "i-lucide-home",
     to: "/",
   },
+  {
+    label: props.folderName,
+    to: "/",
+  },
 ];
 
-const onFolderOpen = (folderId, folderName) => {
-  router.push({
-    path: `/folder/${folderId}`,
-    query: {
-      folderName,
-    }
-  })
+const onFolderOpen = (folderId) => {
+  router.push(`/folder/${folderId}`);
 };
 
 const FOLDER_COLORS = [
@@ -257,7 +269,6 @@ const view = ref("grid"); // 'grid' | 'list'
 const search = ref("");
 const selectedId = ref(null);
 
-
 const gridRef = ref(null);
 const listRef = ref(null);
 
@@ -295,13 +306,12 @@ const ListHeader = defineComponent({
   },
 });
 
-
-function openNewFolderDialog() {
-  newFolderDialog.value = true;
+function openFileUploadDialog() {
+  fileUploadDialog.value = true;
 }
 
 defineExpose({
-  openNewFolderDialog,
+  openFileUploadDialog,
 });
 </script>
 

@@ -27,7 +27,7 @@ function openNewFolderDialog() {
 </script>
 
 <template>
-  <div class="index-page">
+  <div class="home-page">
     <UContextMenu :items="contextItems" :ui="{ content: 'w-60' }">
       <HomeFolderGrid ref="folderGridRef" />
     </UContextMenu>
@@ -35,7 +35,7 @@ function openNewFolderDialog() {
 </template>
 
 <style lang="css" scoped>
-.index-page {
+.home-page {
   flex-direction: column;
   display: flex;
   height: 100%;
