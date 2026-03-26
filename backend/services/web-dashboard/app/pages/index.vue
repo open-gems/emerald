@@ -10,16 +10,26 @@ const contextItems: ContextMenuItem[][] = [
     {
       label: "New folder",
       icon: "i-lucide-folder-plus",
+      onSelect(e: Event) {
+        openNewFolderDialog();
+      },
     },
   ],
 ];
 
+const folderGridRef: any = ref(null);
+
+function openNewFolderDialog() {
+  if (folderGridRef.value) {
+    folderGridRef.value?.openNewFolderDialog();
+  }
+}
 </script>
 
 <template>
   <div class="index-page">
-    <UContextMenu disabled :items="contextItems" :ui="{ content: 'w-60' }">
-      <HomeFolderGrid />
+    <UContextMenu :items="contextItems" :ui="{ content: 'w-60' }">
+      <HomeFolderGrid ref="folderGridRef" />
     </UContextMenu>
   </div>
 </template>

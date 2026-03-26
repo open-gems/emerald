@@ -1,15 +1,9 @@
 <template>
-  <div
-    class="drive-shell"
-    @click="
-      ctxMenu.close();
-      selectedId = null;
-    "
-  >
+  <div class="drive-shell">
     <!-- ════════════════════════════════════════════════
          TOP BAR
     ════════════════════════════════════════════════ -->
-    <header class="topbar">
+    <header class="topbar" oncontextmenu="return false;">
       <label class="topbar-search">
         <IconSearch class="ico-search" :size="15" />
         <UInput
@@ -19,6 +13,7 @@
           variant="outline"
           color="secondary"
           placeholder="Search..."
+          :ui="{ base: 'caret-[initial]' }"
         />
       </label>
 
@@ -37,8 +32,8 @@
             @click="view = 'grid'"
           />
         </UFieldGroup>
-
         <UModal
+          v-model:open="newFolderDialog"
           title="New folder"
           :ui="{
             content: 'w-auto max-w-fit',
@@ -52,6 +47,7 @@
             icon="i-lucide-plus"
             label="New folder"
             size="md"
+            @click="newFolderDialog"
           />
 
           <template #body>
@@ -128,7 +124,7 @@
     ════════════════════════════════════════════════ -->
     <div class="main">
       <!-- Content -->
-      <main class="content" @click.stop="ctxMenu.close()">
+      <main class="content">
         <UBreadcrumb
           :items="breadItems"
           :ui="{
@@ -148,8 +144,8 @@
             :folder="folder"
             :selected="selectedId === folder.id"
             @click.stop="selectedId = toggle(selectedId, folder.id)"
-            @dblclick="toast(`Abriendo «${folder.name}»…`)"
-            @menu="(e) => ctxMenu.open(e, folder)"
+            @dblclick=""
+            @menu="(e) => console.log(e)"
           />
         </div>
 
@@ -163,40 +159,17 @@
             :folder="folder"
             :selected="selectedId === folder.id"
             @click.stop="selectedId = toggle(selectedId, folder.id)"
-            @dblclick="toast(`Abriendo «${folder.name}»…`)"
-            @contextmenu.prevent="(e) => ctxMenu.open(e, folder)"
-            @menu="(e) => ctxMenu.open(e, folder)"
+            @dblclick=""
+            @menu="(e) => console.log(e)"
           />
         </div>
 
         <HomeEmptyFolders v-if="documentStore.filteredFolders.length === 0" />
       </main>
     </div>
-
-    <!-- ════════════════════════════════════════════════
-         OVERLAYS
-    ════════════════════════════════════════════════ -->
-
-    <!-- Context Menu -->
-    <ContextMenu
-      v-if="ctxMenu.state.visible"
-      :x="ctxMenu.state.x"
-      :y="ctxMenu.state.y"
-      @open="handleCtxOpen"
-      @rename="handleCtxRename"
-      @duplicate="handleCtxDuplicate"
-      @delete="handleCtxDelete"
-      @close="ctxMenu.close()"
-    />
-
-    <!-- Toasts -->
-    <ToastStack :toasts="toasts" />
   </div>
 </template>
 
-<!-- ══════════════════════════════════════════════════════════════
-     SCRIPT
-══════════════════════════════════════════════════════════════ -->
 <script setup>
 import {
   ref,
@@ -214,7 +187,7 @@ import Sortable from "sortablejs";
 const documentStore = useDocumentStore();
 
 const newFolderName = ref("Untitled folder");
-const newFolderColor = ref("#00C16A");
+const newFolderColor = ref("#e0a84b");
 
 const newFolderColorChip = computed(() => ({
   backgroundColor: newFolderColor.value,
@@ -237,6 +210,8 @@ const breadItems = [
     to: "/",
   },
 ];
+
+const newFolderDialog = ref(false);
 
 const FOLDER_COLORS = [
   "#d97845",
@@ -344,38 +319,6 @@ function useFolders() {
   return { folders, add, rename, remove, duplicate, move, byId };
 }
 
-/** useToast — lightweight notification stack */
-function useToast() {
-  const toasts = ref([]);
-
-  function toast(msg, duration = 2200) {
-    const id = Date.now() + Math.random();
-    toasts.value.push({ id, msg });
-    setTimeout(() => {
-      toasts.value = toasts.value.filter((t) => t.id !== id);
-    }, duration);
-  }
-
-  return { toasts, toast };
-}
-
-/** useContextMenu — position + target state */
-function useContextMenu() {
-  const state = reactive({ visible: false, x: 0, y: 0, folder: null });
-
-  function open(event, folder) {
-    state.visible = true;
-    state.x = Math.min(event.clientX, window.innerWidth - 170);
-    state.y = Math.min(event.clientY, window.innerHeight - 200);
-    state.folder = folder;
-  }
-  const close = () => {
-    state.visible = false;
-  };
-
-  return { state, open, close };
-}
-
 /** useSortable — attach/detach Sortable.js to a container ref */
 function useSortable(containerRef, onEnd) {
   let instance = null;
@@ -412,8 +355,6 @@ function useKeyboard(handlers) {
 // ─────────────────────────────────────────────────────────────
 
 const { folders, add, rename, remove, duplicate, move } = useFolders();
-const { toasts, toast } = useToast();
-const ctxMenu = useContextMenu();
 
 const view = ref("grid"); // 'grid' | 'list'
 const search = ref("");
@@ -436,7 +377,6 @@ const { init: initSort, destroy: destroySort } = useSortable(
   ({ oldIndex, newIndex }) => {
     if (oldIndex === newIndex) return;
     move(oldIndex, newIndex);
-    toast("Orden actualizado");
   },
 );
 
@@ -450,34 +390,6 @@ onMounted(async () => {
   initSort(gridRef.value);
 });
 onUnmounted(destroySort);
-
-// ─── Keyboard shortcuts ───────────────────────────────────────
-useKeyboard({
-  Escape: () => {
-    ctxMenu.close();
-  },
-});
-
-// ─── Context menu action handlers ─────────────────────────────
-function handleCtxOpen() {
-  toast(`Abriendo «${ctxMenu.state.folder.name}»…`);
-  ctxMenu.close();
-}
-function handleCtxRename() {
-  ctxMenu.close();
-}
-function handleCtxDuplicate() {
-  duplicate(ctxMenu.state.folder.id);
-  toast("Carpeta duplicada");
-  ctxMenu.close();
-}
-function handleCtxDelete() {
-  const name = ctxMenu.state.folder.name;
-  if (selectedId.value === ctxMenu.state.folder.id) selectedId.value = null;
-  remove(ctxMenu.state.folder.id);
-  toast(`«${name}» eliminada`);
-  ctxMenu.close();
-}
 
 // ─────────────────────────────────────────────────────────────
 // INLINE SUB-COMPONENTS  (single-file, no extra imports needed)
@@ -630,6 +542,14 @@ const FolderRow = defineComponent({
       );
   },
 });
+
+function openNewFolderDialog() {
+  newFolderDialog.value = true;
+}
+
+defineExpose({
+  openNewFolderDialog,
+});
 </script>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -658,6 +578,7 @@ const FolderRow = defineComponent({
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  caret-color: transparent;
 }
 
 /* ── Top Bar ────────────────────────────────────────────────── */
