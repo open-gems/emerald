@@ -1,18 +1,9 @@
 <script setup lang="ts">
 import type { ContextMenuItem } from "@nuxt/ui";
-import type { BreadcrumbItem } from "@nuxt/ui";
 
 const documentStore = useDocumentStore();
 
 await documentStore.getFolders();
-
-const breadItems: BreadcrumbItem[] = [
-  {
-    label: "Home",
-    icon: "i-lucide-home",
-    to: "/",
-  },
-];
 
 const contextItems: ContextMenuItem[][] = [
   [
@@ -27,19 +18,6 @@ const contextItems: ContextMenuItem[][] = [
 
 <template>
   <div class="index-page">
-    <div class="index-page-header" v-if="false">
-      <UBreadcrumb
-        :items="breadItems"
-        :ui="{
-          link: 'group relative flex items-center gap-1.5 text-base min-w-0 focus-visible:outline-primary',
-        }"
-      >
-        <template #separator>
-          <span class="mx-2 text-muted">/</span>
-        </template>
-      </UBreadcrumb>
-    </div>
-
     <UContextMenu disabled :items="contextItems" :ui="{ content: 'w-60' }">
       <HomeFolderGrid />
     </UContextMenu>
@@ -52,12 +30,5 @@ const contextItems: ContextMenuItem[][] = [
   display: flex;
   height: 100%;
   width: 100%;
-}
-
-.index-page-header {
-  align-items: center;
-  padding: 1rem;
-  display: flex;
-  height: 3rem;
 }
 </style>

@@ -129,8 +129,16 @@
     <div class="main">
       <!-- Content -->
       <main class="content" @click.stop="ctxMenu.close()">
-        <Breadcrumb :crumbs="['Mi unidad', activeNav]" />
-        <h2 class="section-title">Folders</h2>
+        <UBreadcrumb
+          :items="breadItems"
+          :ui="{
+            link: 'group relative flex items-center gap-1.5 text-base min-w-0 focus-visible:outline-primary',
+          }"
+        >
+          <template #separator>
+            <span class="mx-2 text-muted">/</span>
+          </template>
+        </UBreadcrumb>
 
         <!-- ── Grid view ── -->
         <div v-if="view === 'grid'" ref="gridRef" class="folder-grid">
@@ -224,6 +232,15 @@ const onCreateFolder = async (close) => {
     close();
   }
 };
+
+const breadItems = [
+  {
+    label: "Home",
+    icon: "i-lucide-home",
+    to: "/",
+  }
+];
+
 
 const FOLDER_COLORS = [
   "#d97845",
@@ -495,7 +512,7 @@ const IconSearch = defineComponent({
 
 /** Folder SVG icon (used in cards & rows) */
 const FolderIcon = defineComponent({
-  props: { color: String, size: { type: Number, default: 56 } },
+  props: { color: String, size: { type: Number, default: 60 } },
   setup(props) {
     const s = computed(() => props.size);
     return () =>
@@ -570,24 +587,6 @@ const MenuDots = defineComponent({
             ],
           ),
         ],
-      );
-  },
-});
-
-/** Breadcrumb */
-const Breadcrumb = defineComponent({
-  props: { crumbs: Array },
-  setup(props) {
-    return () =>
-      h(
-        "div",
-        { class: "breadcrumb" },
-        props.crumbs.flatMap((c, i) => {
-          const isLast = i === props.crumbs.length - 1;
-          const nodes = [h("span", { class: isLast ? "current" : "" }, c)];
-          if (!isLast) nodes.push(h("span", { class: "sep" }, "›"));
-          return nodes;
-        }),
       );
   },
 });
@@ -940,32 +939,8 @@ const ToastStack = defineComponent({
 .content {
   flex: 1;
   overflow: auto;
-  padding: 28px;
-}
-
-:deep(.breadcrumb) {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 20px;
-}
-:deep(.breadcrumb .sep) {
-  color: var(--border);
-}
-:deep(.breadcrumb .current) {
-  color: var(--text);
-  font-weight: 600;
-  cursor: default;
-}
-
-.section-title {
-  font-family: var(--font-serif);
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 16px;
+  padding: 1rem;
+ 
 }
 
 /* ── Grid ───────────────────────────────────────────────────── */
@@ -973,6 +948,7 @@ const ToastStack = defineComponent({
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 12px;
+  margin-top: 1rem;
 }
 
 /* ── List ───────────────────────────────────────────────────── */
@@ -1049,8 +1025,9 @@ const ToastStack = defineComponent({
 }
 
 :deep(.card-icon) {
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
+
 }
 :deep(.card-name) {
   font-size: 13px;
