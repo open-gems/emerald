@@ -5,6 +5,45 @@
     --ui-header-height: 3rem;
 }
 
+/* Inter Regular */
+@font-face {
+  font-family: 'Inter';
+  src: url('~assets/fonts/Inter.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Inter Italic */
+@font-face {
+  font-family: 'Inter';
+  src: url('~assets/fonts/InterItalic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Open Sans Regular */
+@font-face {
+  font-family: 'Open Sans';
+  src: url('~assets/fonts/OpenSans.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Open Sans Italic */
+@font-face {
+  font-family: 'Open Sans';
+  src: url('~assets/fonts/OpenSansItalic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+* {
+  font-family: 'Inter', sans-serif;
+}
 
 /**
 text-xs	0.75rem (12px)

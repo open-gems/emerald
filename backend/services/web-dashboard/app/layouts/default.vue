@@ -124,7 +124,7 @@ const navItems: NavigationMenuItem[] = [
     tooltip: {
       text: "Outputs",
     },
-    to: "/outputs",
+    to: "/blocks",
     defaultOpen: false,
   },
 ];
