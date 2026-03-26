@@ -55,7 +55,47 @@
           />
 
           <template #body>
-            <div>
+            <div class="space-y-4">
+              <div class="space-x-4">
+                <UPopover>
+                  <UButton
+                    label="Color"
+                    color="neutral"
+                    variant="outline"
+                    size="md"
+                  >
+                    <template #leading>
+                      <span
+                        :style="newFolderColorChip"
+                        class="size-3 rounded-full"
+                      />
+                    </template>
+                  </UButton>
+
+                  <template #content>
+                    <UColorPicker
+                      v-model="newFolderColor"
+                      class="p-2"
+                      format="hex"
+                    />
+                  </template>
+                </UPopover>
+
+                <UFieldGroup orientation="horizontal" size="md">
+                  <UButton
+                    v-for="color in FOLDER_COLORS"
+                    color="neutral"
+                    variant="ghost"
+                    @click="newFolderColor = color"
+                  >
+                    <span
+                      :style="{ backgroundColor: color }"
+                      class="size-3 rounded-full"
+                    />
+                  </UButton>
+                </UFieldGroup>
+              </div>
+
               <UInput
                 v-model="newFolderName"
                 class="w-full"
@@ -64,18 +104,6 @@
                 :maxlength="100"
                 autofocus
               />
-
-              <UPopover>
-                <UButton label="Color" color="neutral" variant="outline">
-                  <template #leading>
-                    <span :style="chip" class="size-3 rounded-full" />
-                  </template>
-                </UButton>
-
-                <template #content>
-                  <UColorPicker v-model="color" class="p-2" format="hex"/>
-                </template>
-              </UPopover>
             </div>
           </template>
           <template #footer="{ close }">
@@ -181,10 +209,11 @@ import Sortable from "sortablejs";
 const documentStore = useDocumentStore();
 
 const newFolderName = ref("Untitled folder");
-const newFolderColor = ref("blue");
+const newFolderColor = ref("#00C16A");
 
-const color = ref('#00C16A')
-const chip = computed(() => ({ backgroundColor: color.value }))
+const newFolderColorChip = computed(() => ({
+  backgroundColor: newFolderColor.value,
+}));
 
 const onCreateFolder = async (close) => {
   try {
