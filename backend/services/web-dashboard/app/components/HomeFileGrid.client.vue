@@ -43,8 +43,8 @@
           <UButton
             color="primary"
             variant="outline"
-            icon="i-lucide-plus"
-            label="New folder"
+            icon="i-lucide-arrow-up-from-line"
+            label="File upload"
             size="md"
             @click="fileUploadDialog"
           />
