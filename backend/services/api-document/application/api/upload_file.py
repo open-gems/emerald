@@ -1,29 +1,22 @@
 
 import json
-import logging
 import time
 from uuid import UUID
 from uuid6 import uuid7
-from asyncpg import Pool
 from asyncpg.exceptions import ForeignKeyViolationError, UniqueViolationError
-from fastapi import Depends, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import File, Form, HTTPException, Request, status, UploadFile
 from pydantic import BaseModel
 from .router import router
-from fastapi import UploadFile, HTTPException, status
-from infrastructure import S3Service
-from fastapi.encoders import ENCODERS_BY_TYPE
 
-ENCODERS_BY_TYPE[bytes] = lambda o: "<binary>"
-
+# Map of supported MIME types to their corresponding file extensions
 ALLOWED_MIME_TYPES: dict[str, str] = {
     "application/pdf": "pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
     "text/markdown": "md",
     "text/plain": "txt",
 }
-
-MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
-
+# Maximum file size limit: 50 MB
+MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024 
 
 async def validate_file(file: UploadFile) -> tuple[bytes, str, str]:
     """
@@ -34,33 +27,38 @@ async def validate_file(file: UploadFile) -> tuple[bytes, str, str]:
         HTTPException 400 — empty file
         HTTPException 413 — exceeds size limit
     """
+    # 1. Validate MIME type against the allowed list
     if file.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail=(
-                f"Tipo de archivo no permitido: '{file.content_type}'. "
-                f"Permitidos: {', '.join(ALLOWED_MIME_TYPES.keys())}"
+                f"Unsupported file type: '{file.content_type}'. "
+                f"Allowed types: {', '.join(ALLOWED_MIME_TYPES.keys())}"
             ),
         )
-
+        
+    # 2. Read file content into memory
     contents = await file.read()
-
+    
+    # 3. Ensure the file is not empty
     if not contents:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El archivo está vacío.",
+            detail="The uploaded file is empty.",
         )
-
+        
+    # 4. Validate file size
     if len(contents) > MAX_FILE_SIZE_BYTES:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"El archivo excede el límite de {MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB.",
+            detail=f"File size exceeds the {MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB limit.",
         )
-
+        
+    # Return validated data, MIME type, and the mapped extension
     return contents, file.content_type, ALLOWED_MIME_TYPES[file.content_type]
 
-# ── Schema ────────────────────────────────────────────────────
 
+# Response schema
 class DocumentResponse(BaseModel):
     id: UUID
     folder_id: UUID
@@ -71,43 +69,6 @@ class DocumentResponse(BaseModel):
     size_bytes: int
     storage_path: str      
     created_at: int
-
-
-# ── Query ─────────────────────────────────────────────────────
-
-_INSERT = """
-INSERT INTO documents (
-    id, user_id, folder_id,
-    original_name, internal_name,
-    content_type, mime_type,
-    size_bytes, storage_path,
-    metadata,
-    created_at, readed_at, updated_at, deleted_at,
-    v
-) VALUES (
-    $1,  $2,  $3,
-    $4,  $5,
-    $6,  $7,
-    $8,  $9,
-    $10,
-    $11, NULL, NULL, NULL,
-    $12
-)
-RETURNING
-    id, folder_id,
-    original_name, internal_name,
-    content_type, mime_type,
-    size_bytes, storage_path,
-    created_at;
-"""
-
-
-def _storage_key(user_id: str, folder_id: str, internal_name: str) -> str:
-    """
-    S3 object key structure: {user_id}/{folder_id}/{internal_name}
-    e.g. "019d2612-.../aef1bc72-....pdf"
-    """
-    return f"{user_id}/{folder_id}/{internal_name}"
 
 def _build_metadata(original_name: str, size_bytes: int, folder_id: str) -> str:
     """
@@ -144,18 +105,18 @@ async def upload_file(
     logger = request.app.state.logger
     s3 = request.app.state.s3
     pool = request.app.state.pool
-    
-    logger.debug(f"filename={file.filename!r}")
-    logger.debug(f"content_type={file.content_type!r}")
-    logger.debug(f"folder_id={folder_id!r}")
-    
+
+    logger.info(f"filename={file.filename!r}")
+    logger.info(f"content_type={file.content_type!r}")
+    logger.info(f"folder_id={folder_id!r}")
+        
     contents, raw_content_type, ext = await validate_file(file)
 
     user_id       = "019d2612-a01d-734c-ab63-917106f31187"  # TODO: authentication
     doc_id        = uuid7()
     original_name = file.filename or f"document.{ext}"
     internal_name = f"{doc_id}.{ext}"
-    storage_key   = _storage_key(user_id, folder_id, internal_name)
+    storage_key   = f"{user_id}/{folder_id}/{internal_name}"
     created_at    = int(time.time() * 1000)
     metadata      = _build_metadata(original_name, len(contents), folder_id)
 
@@ -165,6 +126,32 @@ async def upload_file(
     #                 e.g. "application/pdf"
     content_type = raw_content_type
     mime_type    = raw_content_type.split(";")[0].strip()
+    
+    _INSERT = """
+    INSERT INTO documents (
+        id, user_id, folder_id,
+        original_name, internal_name,
+        content_type, mime_type,
+        size_bytes, storage_path,
+        metadata,
+        created_at, readed_at, updated_at, deleted_at,
+        v
+    ) VALUES (
+        $1,  $2,  $3,
+        $4,  $5,
+        $6,  $7,
+        $8,  $9,
+        $10,
+        $11, NULL, NULL, NULL,
+        $12
+    )
+    RETURNING
+        id, folder_id,
+        original_name, internal_name,
+        content_type, mime_type,
+        size_bytes, storage_path,
+        created_at;
+    """
 
     # ── Phase 1: upload binary ────────────────────────────────
     try:
