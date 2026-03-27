@@ -84,7 +84,7 @@ export const useDocumentStore = defineStore("document", () => {
     formData.append("folder_id", folderId);
 
     try {
-      const response = await $fetch("/api/document/upload-document", {
+      const response = await $fetch("/api/document/upload-file", {
         method: "POST",
         body: formData,
         // headers: { Authorization: `Bearer ${token}` }

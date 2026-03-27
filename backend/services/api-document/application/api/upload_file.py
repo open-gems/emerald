@@ -126,11 +126,11 @@ def _build_metadata(original_name: str, size_bytes: int, folder_id: str) -> str:
 # ── Endpoint ──────────────────────────────────────────────────
 
 @router.post(
-    "/upload-document",
+    "/upload-file",
     status_code=status.HTTP_201_CREATED,
     response_model=DocumentResponse,
 )
-async def upload_document(
+async def upload_file(
     request: Request,
     file: UploadFile = File(...),
     folder_id: str = Form(...),

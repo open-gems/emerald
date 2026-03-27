@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig();
 
-  return $fetch("http://localhost:8001/api/document/upload-document", {
+  return $fetch("http://localhost:8001/api/document/upload-file", {
     method: "POST",
     body: form,
   });
