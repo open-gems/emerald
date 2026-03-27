@@ -75,26 +75,24 @@ export const useDocumentStore = defineStore("document", () => {
     }
   }
 
-  async function uploadFile(file: File) {
+  async function uploadFile(file: File, folderId: string) {
     pending.value = true;
     error.value = null;
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder_id", folderId);
 
+    try {
       const response = await $fetch("/api/document/upload-document", {
         method: "POST",
         body: formData,
         // headers: { Authorization: `Bearer ${token}` }
       });
 
-      console.log("Server response:", response);
-
       return response;
     } catch (e: any) {
-      error.value = e.data || e.message;
-      console.error("Upload failed:", e);
+      error.value = e.data?.statusMessage ?? e.message ?? "Error desconocido";
       throw e;
     } finally {
       pending.value = false;

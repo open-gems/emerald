@@ -159,16 +159,12 @@ const documentStore = useDocumentStore();
 const fileUploadDialog = ref(false);
 const filesToUpload = ref([]);
 
-watch(filesToUpload, (e) => {
-  console.log(e);
-});
-
 const onSubmit = async (close) => {
   try {
     for (let i = filesToUpload.value.length - 1; i >= 0; i--) {
       const file = filesToUpload.value[i];
 
-      await documentStore.uploadFile(file);
+      await documentStore.uploadFile(file, props.folderId);
 
       filesToUpload.value.splice(i, 1);
     }

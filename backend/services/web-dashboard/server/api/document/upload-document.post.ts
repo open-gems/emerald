@@ -1,13 +1,41 @@
 export default defineEventHandler(async (event) => {
-  const files = await readMultipartFormData(event)
-  
-  if (!files || files.length === 0) {
-    throw createError({ statusCode: 400, statusMessage: 'No files' })
+  const parts = await readMultipartFormData(event);
+
+  if (!parts || parts.length === 0) {
+    throw createError({ statusCode: 400, statusMessage: "No files provided." });
   }
 
-  const file = files[0]
-  
-  console.log(file)
+  const filePart = parts.find((p) => p.name === "file");
+  const folderPart = parts.find((p) => p.name === "folder_id");
 
-  return { success: true }
-})
+  if (!filePart?.data || !filePart.filename) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Campo 'file' requerido.",
+    });
+  }
+
+  if (!folderPart?.data) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Campo 'folder_id' requerido.",
+    });
+  }
+
+  const form = new FormData();
+  form.append(
+    "file",
+    new Blob([filePart.data], {
+      type: filePart.type ?? "application/octet-stream",
+    }),
+    filePart.filename,
+  );
+  form.append("folder_id", folderPart.data.toString());
+
+  const config = useRuntimeConfig();
+
+  return $fetch("http://localhost:8001/api/document/upload-document", {
+    method: "POST",
+    body: form,
+  });
+});

@@ -39,12 +39,13 @@ class Settings(BaseSettings):
     db_url: str
     
     # SeaweedFS
-    seaweed_endpoint: str = "http://localhost:8333"
-    seaweed_access_key: str = "any"
-    seaweed_secret_key: str = "any"
-    seaweed_bucket: str = "documents"
+    seaweed_endpoint: str 
+    seaweed_access_key: str
+    seaweed_secret_key: str 
+    seaweed_bucket: str 
     
     model_config = SettingsConfigDict(
+        env_file=".env.dev",
         env_prefix="APP_",
         case_sensitive=False,
         extra="ignore"

@@ -1,6 +1,8 @@
 
+import json
 import logging
 import time
+from uuid import UUID
 from uuid6 import uuid7
 from asyncpg import Pool
 from asyncpg.exceptions import ForeignKeyViolationError, UniqueViolationError
@@ -9,6 +11,9 @@ from pydantic import BaseModel
 from .router import router
 from fastapi import UploadFile, HTTPException, status
 from infrastructure import S3Service
+from fastapi.encoders import ENCODERS_BY_TYPE
+
+ENCODERS_BY_TYPE[bytes] = lambda o: "<binary>"
 
 ALLOWED_MIME_TYPES: dict[str, str] = {
     "application/pdf": "pdf",
@@ -54,30 +59,17 @@ async def validate_file(file: UploadFile) -> tuple[bytes, str, str]:
 
     return contents, file.content_type, ALLOWED_MIME_TYPES[file.content_type]
 
-# ── Dependency providers ──────────────────────────────────────
-
-def get_pool(request: Request) -> Pool:
-    return request.app.state.pool
-
-def get_s3(request: Request) -> S3Service:
-    return request.app.state.s3
-
-def get_logger(request: Request) -> logging.Logger:
-    return request.app.state.logger
-
-
 # ── Schema ────────────────────────────────────────────────────
 
 class DocumentResponse(BaseModel):
-    id: str
-    folder_id: str
+    id: UUID
+    folder_id: UUID
     original_name: str
     internal_name: str
     content_type: str
     mime_type: str
     size_bytes: int
-    storage_path: str
-    checksum: str          # hex string del SHA-256
+    storage_path: str      
     created_at: int
 
 
@@ -89,7 +81,7 @@ INSERT INTO documents (
     original_name, internal_name,
     content_type, mime_type,
     size_bytes, storage_path,
-    checksum, metadata,
+    metadata,
     created_at, readed_at, updated_at, deleted_at,
     v
 ) VALUES (
@@ -97,16 +89,16 @@ INSERT INTO documents (
     $4,  $5,
     $6,  $7,
     $8,  $9,
-    $10, $11,
-    $12, NULL, NULL, NULL,
-    $13
+    $10,
+    $11, NULL, NULL, NULL,
+    $12
 )
 RETURNING
     id, folder_id,
     original_name, internal_name,
     content_type, mime_type,
     size_bytes, storage_path,
-    checksum, created_at;
+    created_at;
 """
 
 
@@ -116,12 +108,6 @@ def _storage_key(user_id: str, folder_id: str, internal_name: str) -> str:
     e.g. "019d2612-.../aef1bc72-....pdf"
     """
     return f"{user_id}/{folder_id}/{internal_name}"
-
-
-def _checksum(contents: bytes) -> bytes:
-    """SHA-256 digest stored as BYTEA in Postgres."""
-    return hashlib.sha256(contents).digest()
-
 
 def _build_metadata(original_name: str, size_bytes: int, folder_id: str) -> str:
     """
@@ -145,17 +131,24 @@ def _build_metadata(original_name: str, size_bytes: int, folder_id: str) -> str:
     response_model=DocumentResponse,
 )
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     folder_id: str = Form(...),
-    pool: Pool = Depends(get_pool),
-    s3: S3Service = Depends(get_s3),
-    logger: logging.Logger = Depends(get_logger),
+   
 ):
     """
     Conservative atomicity strategy:
       1. Upload to SeaweedFS  →  if it fails, DB is untouched.
       2. INSERT into DB       →  if it fails, compensate by deleting from S3.
     """
+    logger = request.app.state.logger
+    s3 = request.app.state.s3
+    pool = request.app.state.pool
+    
+    logger.debug(f"filename={file.filename!r}")
+    logger.debug(f"content_type={file.content_type!r}")
+    logger.debug(f"folder_id={folder_id!r}")
+    
     contents, raw_content_type, ext = await validate_file(file)
 
     user_id       = "019d2612-a01d-734c-ab63-917106f31187"  # TODO: authentication
@@ -164,7 +157,6 @@ async def upload_document(
     internal_name = f"{doc_id}.{ext}"
     storage_key   = _storage_key(user_id, folder_id, internal_name)
     created_at    = int(time.time() * 1000)
-    checksum      = _checksum(contents)
     metadata      = _build_metadata(original_name, len(contents), folder_id)
 
     # content_type  → raw HTTP header value, may include params
@@ -208,10 +200,9 @@ async def upload_document(
                     mime_type,     # $7  mime_type
                     len(contents), # $8  size_bytes
                     storage_key,   # $9  storage_path
-                    checksum,      # $10 checksum (bytes → BYTEA)
-                    metadata,      # $11 metadata  (str  → JSONB)
-                    created_at,    # $12 created_at
-                    0,             # $13 v
+                    metadata,      # $10 metadata
+                    created_at,    # $11 created_at
+                    0,             # $12 v
                 )
                 if not row:
                     raise RuntimeError("INSERT RETURNING returned empty.")
@@ -234,7 +225,5 @@ async def upload_document(
 
     # TODO: Dispatch Pub/Sub event
 
-    # checksum viene como bytes desde Postgres; se expone como hex en la respuesta
-    result = dict(row)
-    result["checksum"] = result["checksum"].hex()
-    return DocumentResponse(**result)
+
+    return DocumentResponse(**dict(row))
