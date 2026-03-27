@@ -395,7 +395,7 @@ defineExpose({
 .content {
   flex: 1;
   overflow: auto;
-  padding: 1rem;
+  padding: 1rem 2rem;
 }
 
 /* ── Grid ───────────────────────────────────────────────────── */
