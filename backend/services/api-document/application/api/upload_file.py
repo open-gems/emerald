@@ -54,7 +54,7 @@ async def validate_file(file: UploadFile) -> tuple[bytes, str, str]:
             detail=f"File size exceeds the {MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB limit.",
         )
         
-    # Return validated data, MIME type, and the mapped extension
+    # 5. Return validated data, MIME type, and the mapped extension
     return contents, file.content_type, ALLOWED_MIME_TYPES[file.content_type]
 
 
@@ -94,11 +94,10 @@ def _build_metadata(original_name: str, size_bytes: int, folder_id: str) -> str:
 async def upload_file(
     request: Request,
     file: UploadFile = File(...),
-    folder_id: str = Form(...),
-   
+    folder_id: str = Form(...)
 ):
     """
-    Conservative atomicity strategy:
+    Rollback flow:
       1. Upload to SeaweedFS  →  if it fails, DB is untouched.
       2. INSERT into DB       →  if it fails, compensate by deleting from S3.
     """
@@ -118,8 +117,9 @@ async def upload_file(
     internal_name = f"{doc_id}.{ext}"
     storage_key   = f"{user_id}/{folder_id}/{internal_name}"
     created_at    = int(time.time() * 1000)
-    metadata      = _build_metadata(original_name, len(contents), folder_id)
-
+    size_bytes   = len(contents)
+    metadata      = _build_metadata(original_name, size_bytes, folder_id)
+    initial_v = 0
     # content_type  → raw HTTP header value, may include params
     #                 e.g. "application/pdf; name=report.pdf"
     # mime_type     → clean MIME type, no params
@@ -127,7 +127,8 @@ async def upload_file(
     content_type = raw_content_type
     mime_type    = raw_content_type.split(";")[0].strip()
     
-    _INSERT = """
+    
+    SQL_INSERT = """
     INSERT INTO documents (
         id, user_id, folder_id,
         original_name, internal_name,
@@ -170,14 +171,14 @@ async def upload_file(
         logger.info(f"[upload-document] S3 object written: {storage_key}")
     except Exception as e:
         logger.error(f"[upload-document] SeaweedFS upload failed: {e}")
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Error al subir el archivo.")
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Error uploading file to S3")
 
     # ── Phase 2: persist metadata ─────────────────────────────
     async with pool.acquire() as conn:
         try:
             async with conn.transaction():
                 row = await conn.fetchrow(
-                    _INSERT,
+                    SQL_INSERT,
                     doc_id,        # $1  id
                     user_id,       # $2  user_id
                     folder_id,     # $3  folder_id
@@ -185,22 +186,23 @@ async def upload_file(
                     internal_name, # $5  internal_name
                     content_type,  # $6  content_type
                     mime_type,     # $7  mime_type
-                    len(contents), # $8  size_bytes
+                    size_bytes,    # $8  size_bytes
                     storage_key,   # $9  storage_path
                     metadata,      # $10 metadata
+                    
                     created_at,    # $11 created_at
-                    0,             # $12 v
+                    initial_v      # $12 v
                 )
                 if not row:
                     raise RuntimeError("INSERT RETURNING returned empty.")
 
         except ForeignKeyViolationError:
             await s3.compensate(storage_key, logger)
-            raise HTTPException(status.HTTP_404_NOT_FOUND, f"La carpeta '{folder_id}' no existe.")
+            raise HTTPException(status.HTTP_404_NOT_FOUND, f"The folder '{folder_id}' does not exist.")
 
         except UniqueViolationError:
             await s3.compensate(storage_key, logger)
-            raise HTTPException(status.HTTP_409_CONFLICT, "Ya existe un documento con ese identificador.")
+            raise HTTPException(status.HTTP_409_CONFLICT, "A document with that identifier already exists.")
 
         except HTTPException:
             raise
@@ -208,7 +210,7 @@ async def upload_file(
         except Exception as e:
             logger.error(f"[upload-document] DB insert failed: {e}")
             await s3.compensate(storage_key, logger)
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Error al registrar el documento.")
+            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Error registering the document.")
 
     # TODO: Dispatch Pub/Sub event
 

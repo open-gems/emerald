@@ -40,9 +40,9 @@ async def create_folder_endpoint(params: FolderCreate, request: Request): #TODO:
     user_id = "019d2612-a01d-734c-ab63-917106f31187" #TODO: authentication
     folder_id = uuid7()
     folder_status = "created"
-    storage_path = f"/storage/{user_id}/{folder_id}"
+    storage_path = f"{user_id}/{folder_id}"
     color = params.color
-    now_timestamp = int(time.time() * 1000)
+    created_at = int(time.time() * 1000)
     initial_v = 0
     
     # 3. Define the SQL insertion query with a RETURNING clause for the created record
@@ -65,7 +65,7 @@ async def create_folder_endpoint(params: FolderCreate, request: Request): #TODO:
                     params.name,
                     storage_path,
                     color,
-                    now_timestamp,
+                    created_at,
                     initial_v
                 )
                 
