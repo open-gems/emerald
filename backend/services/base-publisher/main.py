@@ -6,7 +6,7 @@ import time
 import logging
 
 # --- Configuración ---
-DB_CONFIG = "host=localhost dbname=mi_db user=usuario password=password"
+DB_CONFIG = "host=localhost dbname=api_document user=postgres password=password"
 PULSAR_URL = 'pulsar://localhost:6650'
 
 # Mapeo de tópicos por tipo de entidad

@@ -19,6 +19,7 @@ from uuid6 import uuid7
 from pydantic import BaseModel, Field
 from fastapi import Request, HTTPException, status
 from .router import router
+from .event_manager import emit_event
 
 class FolderCreate(BaseModel):
     name: str = Field(..., max_length=100)
@@ -31,7 +32,7 @@ async def create_folder_endpoint(params: FolderCreate, request: Request): #TODO:
     Generates a unique UUID v7 and sets initial metadata.
     """    
     logger = request.app.state.logger
-    
+
     # 1. Retrieve the database connection pool from the app state
     pool = request.app.state.pool
     
@@ -50,7 +51,7 @@ async def create_folder_endpoint(params: FolderCreate, request: Request): #TODO:
     INSERT INTO folders (
         id, user_id, status, name, storage_path, color, created_at, v
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    RETURNING id, name, status, storage_path, color, created_at;
+    RETURNING *;
     """
     
     async with pool.acquire() as connection:
@@ -72,6 +73,21 @@ async def create_folder_endpoint(params: FolderCreate, request: Request): #TODO:
                 if not row:
                     raise HTTPException(status_code=500, detail="Error al insertar el registro")
                 
+                print(dict(row))
+                
+                await emit_event(
+                    connection=connection,
+                    specversion=0,
+                    entity_type='folder',
+                    entity_id=str(row["id"]),
+                    event_type='folder.created',
+                    data=dict(row),
+                    metadata={
+                        "user_id": user_id
+                    }
+                )
+                
+            
                 # TODO: Dispatch Pub/Sub event for downstream services
                 
                 # Return the newly created record as a dictionary
