@@ -9,7 +9,7 @@ CREATE TABLE
         mime_type VARCHAR(100) NOT NULL,
         size_bytes BIGINT NOT NULL CHECK (size_bytes >= 0),
         storage_path TEXT NOT NULL,
-        checksum BYTEA DEFAULT NULL,
+        checksum VARCHAR(255) DEFAULT NULL,
         metadata JSONB DEFAULT NULL,
      
         created_at BIGINT DEFAULT NULL,

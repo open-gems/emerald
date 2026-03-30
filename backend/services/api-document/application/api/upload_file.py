@@ -7,6 +7,7 @@ from asyncpg.exceptions import ForeignKeyViolationError, UniqueViolationError
 from fastapi import File, Form, HTTPException, Request, status, UploadFile
 from pydantic import BaseModel
 from .router import router
+from .event_manager import emit_event
 
 # Map of supported MIME types to their corresponding file extensions
 ALLOWED_MIME_TYPES: dict[str, str] = {
@@ -174,10 +175,10 @@ async def upload_file(
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Error uploading file to S3")
 
     # ── Phase 2: persist metadata ─────────────────────────────
-    async with pool.acquire() as conn:
+    async with pool.acquire() as connection:
         try:
-            async with conn.transaction():
-                row = await conn.fetchrow(
+            async with connection.transaction():
+                row = await connection.fetchrow(
                     SQL_INSERT,
                     doc_id,        # $1  id
                     user_id,       # $2  user_id
@@ -196,6 +197,18 @@ async def upload_file(
                 if not row:
                     raise RuntimeError("INSERT RETURNING returned empty.")
 
+                await emit_event(
+                    connection=connection,
+                    specversion=0,
+                    entity_type='document',
+                    entity_id=str(row["id"]),
+                    event_type='document.created',
+                    data=dict(row),
+                    metadata={
+                        "user_id": user_id
+                    }
+                )
+                
         except ForeignKeyViolationError:
             await s3.compensate(storage_key, logger)
             raise HTTPException(status.HTTP_404_NOT_FOUND, f"The folder '{folder_id}' does not exist.")
