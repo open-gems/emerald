@@ -50,12 +50,8 @@ pub async fn publish_pending_events(
 
         // 3. Cache a Pulsar producer for the target topic if it does not already exist in the registry.
         if !producers.contains_key(target_topic) {
-            let new_producer: pulsar::Producer<TokioExecutor> = pulsar
-                .producer()
-                .with_topic(target_topic)
-                // Opcional: configurar batching aquí para más velocidad
-                .build()
-                .await?;
+            let new_producer: pulsar::Producer<TokioExecutor> =
+                pulsar.producer().with_topic(target_topic).build().await?;
 
             producers.insert(target_topic.clone(), new_producer);
             info!("Producer cached")
@@ -64,8 +60,12 @@ pub async fn publish_pending_events(
         let producer: &mut pulsar::Producer<TokioExecutor> =
             producers.get_mut(target_topic).unwrap();
 
-        let payload: Vec<u8> = serde_json::to_vec(&row.data)?;
-        
+        let payload: Vec<u8> = serde_json::to_vec(&serde_json::json!({
+            "event_id":    row.id,
+            "entity_type": row.entity_type,
+            "data":        row.data,
+        }))?;
+
         // 5. Dispatch the event to Pulsar and upon successful delivery mark the event as published.
         match producer.send_non_blocking(payload).await {
             Ok(_) => {
