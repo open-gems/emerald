@@ -9,7 +9,7 @@ use uuid::Uuid;
 struct EventRow {
     pub id: Uuid,
     pub entity_type: String,
-    //pub entity_id: String,
+    pub entity_id: String,
     pub data: serde_json::Value,
     //pub time: i64,
     //pub type_: String,
@@ -66,8 +66,14 @@ pub async fn publish_pending_events(
             "data":        row.data,
         }))?;
 
+        let message: pulsar::producer::Message = pulsar::producer::Message {
+            payload,
+            partition_key: Some(row.entity_id.to_string()), 
+            ..Default::default()
+        };
+
         // 5. Dispatch the event to Pulsar and upon successful delivery mark the event as published.
-        match producer.send_non_blocking(payload).await {
+        match producer.send_non_blocking(message).await {
             Ok(_) => {
                 sqlx::query("UPDATE events SET published = TRUE WHERE id = $1")
                     .bind(row.id)
