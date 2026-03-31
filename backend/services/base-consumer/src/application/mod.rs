@@ -75,7 +75,7 @@ where
 
     while let Some(msg) = consumer.try_next().await? {
         // 1. Deserialize: the payload acknowledging malformed messages to prevent queue blocking.
-        let data: EventEnveloped = match msg.deserialize() {
+        let event: EventEnveloped = match msg.deserialize() {
             Ok(data) => data,
             Err(e) => {
                 error!("Could not deserialize message: {:?}", e);
@@ -85,24 +85,24 @@ where
         };
 
         // 2. Early Filtering: Check if the registered handlers can process this entity_type.
-        if !handlers.can_handle(&data.entity_type) {
-            info!("Event {} ignored by {}", data.event_id, handlers.name());
+        if !handlers.can_handle(&event.entity_type) {
+            info!("Event {} ignored by {}", event.event_id, handlers.name());
             consumer.ack(&msg).await?;
             continue;
         }
 
         // 3. Processing: Attempt to process the event using the transactional handler logic.
-        match process_event_with_handler(&state, &data, &consumer_group, &*handlers).await {
+        match process_event_with_handler(&state, &event, &consumer_group, &*handlers).await {
             Ok(processed) => {
                 if processed {
-                    info!(id = %data.event_id, "Event processed successfully");
+                    info!(id = %event.event_id, "Event processed successfully");
                 } else {
-                    warn!(id = %data.event_id, "Event skipped (already processed)");
+                    warn!(id = %event.event_id, "Event skipped (already processed)");
                 }
                 consumer.ack(&msg).await?;
             }
             Err(e) => {
-                error!(id = %data.event_id, "Critical error processing event: {:?}", e);
+                error!(id = %event.event_id, "Critical error processing event: {:?}", e);
                 // NACK retry
                 consumer.nack(&msg).await?;
             }
