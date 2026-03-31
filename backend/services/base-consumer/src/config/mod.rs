@@ -34,7 +34,7 @@ pub struct Config {
     pub consumer_group: String,
 
     pub consumer_prefix: String,
-
+    
     pub consumer_suffix: String,
 }
 
@@ -89,13 +89,13 @@ impl Config {
             .context("PULSAR_BATCH_SIZE is not set")?
             .parse::<u32>()
             .map_err(|_| anyhow::anyhow!("PULSAR_BATCH_SIZE must be a valid integer"))?;
-        
 
-        let consumer_group: String = "api-document-consumer-group".to_string();
+        let consumer_group: String =
+            std::env::var("CONSUMER_GROUP").context("CONSUMER_GROUP is not set")?;
 
-        let consumer_prefix: String = "api-document-consumer".to_string();
+        let consumer_prefix: String =  std::env::var("CONSUMER_PREFIX").context("CONSUMER_PREFIX is not set")?;
 
-        let consumer_suffix: String = "1".to_string();
+        let consumer_suffix: String = std::env::var("CONSUMER_SUFFIX").context("CONSUMER_SUFFIX is not set")?;
 
         let config: Config = Self {
             db_url,

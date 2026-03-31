@@ -31,7 +31,7 @@ impl DeserializeMessage for EventEnveloped {
     }
 }
 
-pub async fn run<L>(state: Arc<AppState>, logic: L) -> Result<()>
+pub async fn run<L>(state: Arc<AppState>, multi_handler: L) -> Result<()>
 where
     L: MultiHandler + 'static,
 {
@@ -51,12 +51,11 @@ where
         "{}-{}",
         state.config.consumer_prefix, state.config.consumer_suffix
     );
-
-    let dlq_topic_name: String = format!("{}-{}-DLQ", "api-document-consumer", consumer_group);
-
+    
+    // Dead Letter Queue (DLQ) Configuration:
     let dlq_policy: DeadLetterPolicy = DeadLetterPolicy {
         max_redeliver_count: 5,
-        dead_letter_topic: dlq_topic_name,
+        dead_letter_topic: format!("{}-DLQ", consumer_group),
     };
 
     // consumer_name : Assign a unique name to this specific instance for tracking.
@@ -72,13 +71,10 @@ where
         .build()
         .await?;
 
-    let logic_handler = Arc::new(logic);
+    let handlers: Arc<L> = Arc::new(multi_handler);
 
     while let Some(msg) = consumer.try_next().await? {
-        let data_str = String::from_utf8_lossy(&msg.payload.data);
-        info!("Raw payload string: {}", data_str);
-
-        // Deserialize the payload acknowledging malformed messages to prevent queue blocking.
+        // 1. Deserialize: the payload acknowledging malformed messages to prevent queue blocking.
         let data: EventEnveloped = match msg.deserialize() {
             Ok(data) => data,
             Err(e) => {
@@ -88,17 +84,15 @@ where
             }
         };
 
-        if !logic_handler.can_handle(&data.entity_type) {
-            info!(
-                "Event {} ignored by {}",
-                data.event_id,
-                logic_handler.name()
-            );
+        // 2. Early Filtering: Check if the registered handlers can process this entity_type.
+        if !handlers.can_handle(&data.entity_type) {
+            info!("Event {} ignored by {}", data.event_id, handlers.name());
             consumer.ack(&msg).await?;
             continue;
         }
 
-        match process_event_with_handler(&state, &data, &consumer_group, &*logic_handler).await {
+        // 3. Processing: Attempt to process the event using the transactional handler logic.
+        match process_event_with_handler(&state, &data, &consumer_group, &*handlers).await {
             Ok(processed) => {
                 if processed {
                     info!(id = %data.event_id, "Event processed successfully");
@@ -109,7 +103,7 @@ where
             }
             Err(e) => {
                 error!(id = %data.event_id, "Critical error processing event: {:?}", e);
-                // nack retry
+                // NACK retry
                 consumer.nack(&msg).await?;
             }
         }
