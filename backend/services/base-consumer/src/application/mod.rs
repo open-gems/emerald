@@ -1,6 +1,6 @@
 pub mod consumer;
 use crate::{
-    application::consumer::{EventBusinessLogic, process_event_with_handler},
+    application::consumer::{EventHandlerLogic, process_event_with_handler},
     infrastructure::bootstrap::AppState,
 };
 use anyhow::{Context, Result};
@@ -32,7 +32,7 @@ impl DeserializeMessage for EventEnveloped {
 
 pub async fn run<L>(state: Arc<AppState>, logic: L) -> Result<()>
 where
-    L: EventBusinessLogic + 'static,
+    L: EventHandlerLogic + 'static,
 {
     info!("Starting consumer for topics: {:?}", state.config.topics);
 
@@ -87,7 +87,12 @@ where
             }
         };
 
-        if data.entity_type != logic_handler.entity_type() {
+        if !logic_handler.can_handle(&data.entity_type) {
+            info!(
+                "Event {} ignored by {}",
+                data.event_id,
+                logic_handler.name()
+            );
             consumer.ack(&msg).await?;
             continue;
         }

@@ -6,19 +6,22 @@ use std::sync::Arc;
 use tracing::{error};
 
 #[async_trait]
-pub trait EventBusinessLogic: Send + Sync {
-    // Cada microservicio implementa su lógica aquí
+pub trait EventHandlerLogic: Send + Sync {
+    // Nuevo: El motor llamará a esto para saber si el handler está interesado
+    fn can_handle(&self, entity_type: &str) -> bool;
+
     async fn handle<'a>(
         &self,
         tx: &mut Transaction<'a, Postgres>,
         event: &EventEnveloped,
     ) -> Result<()>;
 
-    // Define qué tipos de eventos procesa este microservicio
-    fn entity_type(&self) -> &str;
+    // Ya no es estrictamente necesario si usamos can_handle, 
+    // pero podemos dejarlo para logging/identificación.
+    fn name(&self) -> &str;
 }
 
-pub async fn process_event_with_handler<L: EventBusinessLogic>(
+pub async fn process_event_with_handler<L: EventHandlerLogic>(
     state: &Arc<AppState>,
     event: &EventEnveloped,
     group: &str,
