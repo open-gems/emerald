@@ -20,7 +20,7 @@ struct EventRow {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EventEnvelope {
-    pub event_id: String,
+    pub event_id: Uuid,
     pub entity_type: String,
     pub data: serde_json::Value,
 }
@@ -70,7 +70,7 @@ pub async fn publish_pending_events(
             producers.get_mut(target_topic).unwrap();
 
         let envelope: EventEnvelope = EventEnvelope {
-            event_id: row.id.clone().to_string(),
+            event_id: row.id.clone(),
             entity_type: row.entity_type.clone(),
             data: row.data.clone(),
         };
@@ -79,7 +79,7 @@ pub async fn publish_pending_events(
 
         let message: pulsar::producer::Message = pulsar::producer::Message {
             payload,
-            partition_key: Some(row.entity_id.to_string()),
+            partition_key: Some(row.entity_id.clone()),
             ..Default::default()
         };
 
@@ -87,14 +87,14 @@ pub async fn publish_pending_events(
         match producer.send_non_blocking(message).await {
             Ok(_) => {
                 sqlx::query("UPDATE events SET published = TRUE WHERE id = $1")
-                    .bind(row.id)
+                    .bind(&row.id)
                     .execute(&state.pool)
                     .await?;
 
                 published_count += 1;
-                info!("Event send {} - {}", target_topic, row.entity_type.clone());
+                info!("Event send {} - {}", target_topic, envelope.entity_type);
             }
-            Err(e) => error!("Failed to send event {} to pulsar: {:?}", row.id, e),
+            Err(e) => error!("Failed to send event {} to pulsar: {:?}", envelope.event_id, e),
         }
     }
 

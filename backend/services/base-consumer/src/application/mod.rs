@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EventEnveloped {
-    pub event_id: String,
+    pub event_id: Uuid,
     pub entity_type: String,
     pub data: serde_json::Value,
 }
@@ -112,8 +112,6 @@ async fn process_and_record(
 
     let now: i64 = chrono::Utc::now().timestamp();
 
-    let event_uuid: Uuid = Uuid::parse_str(&event.event_id)?;
-
     // 2. Intentamos insertar el registro de control de duplicados
     // Usamos &mut *tx para ejecutar la consulta dentro de la transacción
     let result = sqlx::query(
@@ -123,7 +121,7 @@ async fn process_and_record(
     )
     .bind(Uuid::now_v7())
     .bind(group)
-    .bind(event_uuid)
+    .bind(event.event_id)
     .bind(now)
     .bind("SUCCESS")
     .execute(&mut *tx) // <--- Ejecución en la transacción
