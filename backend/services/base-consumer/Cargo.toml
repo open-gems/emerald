@@ -38,6 +38,7 @@ anyhow = "1.0.102"
 dotenvy = "0.15.7"
 validator = { version = "0.20.0", features = ["derive"] }
 futures = "0.3.32"
+async-trait = "0.1.89"
 
 [profile.release]
 opt-level = 3
