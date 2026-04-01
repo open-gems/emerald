@@ -104,6 +104,7 @@ where
             Err(e) => {
                 error!(id = %event.event_id, "Critical error processing event: {:?}", e);
                 // NACK retry
+                //consumer.nack_with_delay(&msg, std::time::Duration::from_secs(10)).await?;
                 consumer.nack(&msg).await?;
             }
         }
