@@ -282,8 +282,6 @@ const IconRefresh = {
 /* ── Card shell ─────────────────────────────────────────────── */
 .card {
   background: var(--ui-bg);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius);
   overflow: hidden;
 }
 

@@ -1,14 +1,14 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
-:root{
-    --ui-header-height: 3rem;
+:root {
+  --ui-header-height: 3rem;
 }
 
 /* Inter Regular */
 @font-face {
-  font-family: 'Inter';
-  src: url('assets/fonts/Inter.ttf') format('truetype');
+  font-family: "Inter";
+  src: url("assets/fonts/Inter.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -16,8 +16,8 @@
 
 /* Inter Italic */
 @font-face {
-  font-family: 'Inter';
-  src: url('assets/fonts/InterItalic.ttf') format('truetype');
+  font-family: "Inter";
+  src: url("assets/fonts/InterItalic.ttf") format("truetype");
   font-weight: 400;
   font-style: italic;
   font-display: swap;
@@ -25,8 +25,8 @@
 
 /* Open Sans Regular */
 @font-face {
-  font-family: 'Open Sans';
-  src: url('assets/fonts/OpenSans.ttf') format('truetype');
+  font-family: "Open Sans";
+  src: url("assets/fonts/OpenSans.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -34,15 +34,15 @@
 
 /* Open Sans Italic */
 @font-face {
-  font-family: 'Open Sans';
-  src: url('assets/fonts/OpenSansItalic.ttf') format('truetype');
+  font-family: "Open Sans";
+  src: url("assets/fonts/OpenSansItalic.ttf") format("truetype");
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
 * {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 /**
@@ -60,3 +60,32 @@ text-7xl	4.5rem (72px)
 text-8xl	6rem (96px)
 text-9xl	8rem (128px)
 */
+
+:root {
+  /* acciones e intenciones */
+  --ui-primary: #c4b89a; /* --c-accent2  → CTA principal, links, foco */
+  --ui-secondary: #3a3a3a; /* --c-border2  → acciones secundarias */
+  --ui-success: #4a7c54; /* --c-green    → confirmación, válido */
+  --ui-info: #4a6e8a; /* derivado      → informativo neutro */
+  --ui-warning: #b07830; /* --c-amber    → precaución, pendiente */
+  --ui-error: #c0432b; /* --c-red      → fallo, destructivo */
+
+  /* escala de texto */
+  --ui-text-dimmed: #3d3d3d; /* --c-faint    → texto casi invisible, placeholders */
+  --ui-text-muted: #6a6a6a; /* --c-muted    → labels, metadatos, secundario débil */
+  --ui-text-toned: #9a9590; /* --c-text2    → texto de apoyo, descripciones */
+  --ui-text: #e0dbd2; /* --c-text     → cuerpo principal */
+  --ui-text-highlighted: #e8e0d0; /* --c-accent   → énfasis, títulos */
+  --ui-text-inverted: #141414; /* --c-bg       → texto sobre fondos claros */
+
+  --ui-bg: #141414; /* --c-bg       → fondo base de la app */
+  --ui-bg-muted: #1c1c1c; /* --c-surface  → áreas recesadas, sidebars */
+  --ui-bg-elevated: #242424; /* --c-raised   → tarjetas, modales, hover */
+  --ui-bg-accented: #2e2e2e; /* --c-border   → separadores con relleno */
+  --ui-bg-inverted: #e0dbd2; /* --c-text     → fondo sobre texto claro */
+
+  --ui-border: #2e2e2e; /* --c-border  → borde por defecto */
+  --ui-border-muted: #242424; /* --c-raised  → borde casi invisible, divisores internos */
+  --ui-border-accented: #3a3a3a; /* --c-border2 → borde con énfasis, hover, focus */
+  --ui-border-inverted: #e8e0d0; /* --c-accent  → borde sobre fondos oscuros invertidos */
+}

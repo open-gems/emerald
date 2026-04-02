@@ -1,140 +1,174 @@
-<script setup lang="ts">
-import type { Editor } from "@tiptap/vue-3";
-import type { EditorCustomHandlers, EditorToolbarItem } from "@nuxt/ui";
-import Highlight from "@tiptap/extension-highlight";
-
-const value =
-  ref(`ARTÍCULO 1o. ALCANCE. El presente decreto se aplica en la totalidad del Territorio
-Aduanero Nacional y regula las relaciones jurídicas que se establecen entre la administración
-aduanera y quienes intervienen en el ingreso, permanencia, traslado y salida de las mercancías,
-hacia y desde el Territorio Aduanero Nacional, con sujeción a la Constitución y la ley.
-
-Asimismo, se aplica sin perjuicio de las disposiciones especiales y las resultantes de acuerdos o
-tratados internacionales a los que haya adherido o adhiera Colombia. Los acuerdos o tratados
-mencionados comprenden, entre otros, los acuerdos comerciales y los referidos a la protección de
-la propiedad intelectual.
-
-La potestad aduanera se ejercerá, incluso, en el área demarcada del país vecino donde se cumplan
-los trámites y controles aduaneros en virtud de acuerdos binacionales fronterizos.
-
-Doctrina Concordante
-
-Oficio DIAN 904105 de 2021`);
-
-const customHandlers = {
-  highlight: {
-    canExecute: (editor: Editor) => editor.can().toggleHighlight(),
-    execute: (editor: Editor) => editor.chain().focus().toggleHighlight(),
-    isActive: (editor: Editor) => editor.isActive("highlight"),
-    isDisabled: (editor: Editor) => !editor.isEditable,
-  },
-} satisfies EditorCustomHandlers;
-
-const toolbarItems = [
-  [
-    {
-      icon: "i-lucide-heading",
-      content: {
-        align: "start",
-      },
-      items: [
-        {
-          kind: "heading",
-          level: 1,
-          icon: "i-lucide-heading-1",
-          label: "Heading 1",
-        },
-        {
-          kind: "heading",
-          level: 2,
-          icon: "i-lucide-heading-2",
-          label: "Heading 2",
-        },
-        {
-          kind: "heading",
-          level: 3,
-          icon: "i-lucide-heading-3",
-          label: "Heading 3",
-        },
-        {
-          kind: "heading",
-          level: 4,
-          icon: "i-lucide-heading-4",
-          label: "Heading 4",
-        },
-      ],
-    },
-  ],
-  [
-    {
-      kind: "mark",
-      mark: "bold",
-      icon: "i-lucide-bold",
-    },
-    {
-      kind: "mark",
-      mark: "italic",
-      icon: "i-lucide-italic",
-    },
-    {
-      kind: "mark",
-      mark: "underline",
-      icon: "i-lucide-underline",
-    },
-    {
-      kind: "mark",
-      mark: "strike",
-      icon: "i-lucide-strikethrough",
-    },
-    {
-      kind: "mark",
-      mark: "code",
-      icon: "i-lucide-code",
-    },
-    {
-      kind: "highlight",
-      icon: "i-lucide-highlighter",
-      tooltip: { text: "Control + Shift + H / Cmd + Shift + H" },
-    },
-  ],
-] satisfies EditorToolbarItem<typeof customHandlers>[][];
-
-const extensions = [
-  Highlight.configure({
-    multicolor: true,
-  }),
-];
-
-const editorProps: any = {
-  attributes: {
-    spellcheck: "false",
-  },
-};
-</script>
-
 <template>
-  <UEditor
-    v-slot="{ editor }"
-    v-model="value"
-    :editor-props="editorProps"
-    :extensions="extensions"
-    :handlers="customHandlers"
-    content-type="markdown"
-    :ui="{ base: 'p-1 pt-8 sm:px-16' }"
-    class="w-full min-h-74"
-  >
-    <UEditorToolbar
-      :editor="editor"
-      :items="toolbarItems"
-      color="neutral"
-      variant="ghost"
-      :ui="{
-        base: 'flex items-stretch gap-1.5 bg',
-      }"
-      class="py-2 px-8 sm:px-16 overflow-x-auto"
-    />
-    <USeparator />
-  </UEditor>
+  <div class="editor-container">
+    <editor-content :editor="editor" class="tiptap-viewport" />
+  </div>
 </template>
 
-<style lang="scss" scoped></style>
+<script setup>
+import { onBeforeUnmount } from "vue";
+import { useEditor, EditorContent } from "@tiptap/vue-3";
+import StarterKit from "@tiptap/starter-kit";
+import { Node, mergeAttributes } from "@tiptap/core";
+
+// 1. Definimos la extensión personalizada "Page"
+const Page = Node.create({
+  name: "page",
+  group: "block",
+  content: "block+", // Permite párrafos, listas, etc. dentro de la página
+  defining: true, // Ayuda a mantener la estructura al pegar texto
+
+  addAttributes() {
+    return {
+      number: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-number"),
+        renderHTML: (attributes) => ({ "data-number": attributes.number }),
+      },
+      id: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("id"),
+        renderHTML: (attributes) => ({ id: attributes.id }),
+      },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'div[data-type="page"]' }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    // Añadimos la clase 'page-virtual' para el CSS de rendimiento
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, {
+        "data-type": "page",
+        class: "page-virtual",
+      }),
+      0,
+    ];
+  },
+});
+
+// 2. Props para recibir el HTML ya "empaquetado" desde Python
+const props = defineProps({
+  initialContent: {
+    type: String,
+    default: "",
+  },
+});
+
+// 3. Inicialización del Editor
+const editor = useEditor({
+  content: props.initialContent,
+  extensions: [
+    StarterKit,
+    Page, // Nuestra extensión de páginas
+  ],
+  editorProps: {
+    attributes: {
+      spellcheck: "false",
+      class: "prose-container", // Clase para estilos generales de texto
+    },
+  },
+});
+
+onBeforeUnmount(() => {
+  editor.value.destroy();
+});
+</script>
+
+<style>
+:root {
+  --c-bg:       #141414;  /* fondo base */
+  --c-surface:  #1c1c1c;  /* sidebars, topbar */
+  --c-raised:   #242424;  /* elementos elevados, hover */
+  
+  --c-border:   #2e2e2e;  /* bordes sutiles */
+  --c-border2:  #3a3a3a;  /* bordes con énfasis */
+  --c-faint:    #3d3d3d;  /* fills inactivos */
+  --c-muted:    #6a6a6a;  /* texto terciario, labels */
+  --c-text2:    #9a9590;  /* texto secundario */
+  --c-text:     #e0dbd2;  /* texto principal */
+  --c-accent2:  #c4b89a;  /* acento secundario, bordes activos */
+  --c-accent:   #e8e0d0;  /* acento principal, títulos */
+
+  /* semánticas */
+  --c-red:      #c0432b;
+  --c-amber:    #b07830;
+  --c-green:    #4a7c54;
+
+  /* layout */
+  --r:          3px;      /* border-radius base */
+}
+
+
+/* --- CAPA DE RENDIMIENTO (CRÍTICO) --- */
+.editor-container {
+  /* Establece cuánto espacio quieres que ocupe el editor en pantalla */
+  height: 100vh; /* Ocupa todo el alto de la ventana */
+  overflow-y: auto; /* Activa el scroll vertical cuando el contenido sea mayor a 100vh */
+  background: var(--c-bg);
+}
+
+.tiptap-viewport {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.tiptap-viewport .ProseMirror {
+  min-height: 100%;
+  outline: none;
+}
+
+.page-virtual {
+  /* La magia: el navegador no dibuja la página si no está en el viewport */
+  content-visibility: auto;
+
+  /* Evita que el scrollbar "tiemble". Ajusta 1100px a la altura real de tu página */
+  contain-intrinsic-size: 1px 1100px;
+
+  background: var(--c-surface);
+  margin-bottom: 40px;
+  padding: 60px 80px;
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+
+  display: block;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 1100px; /* Muy importante para el scrollbar */
+  min-height: 100px;
+}
+
+/* --- INDICADOR DE PÁGINA (ESTÉTICO) --- */
+
+.page-virtual::before {
+  /* Toma el número del atributo data-number automáticamente */
+  content: "PÁGINA " attr(data-number);
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #c0c0c0;
+  letter-spacing: 1px;
+  user-select: none; /* Evita que el número se seleccione al copiar texto */
+  pointer-events: none; /* El ratón lo atraviesa para no estorbar la edición */
+}
+
+/* Estilos de texto básicos para que se vea bien */
+.prose-container:focus {
+  outline: none;
+}
+
+.page-virtual p {
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.page-virtual ul {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+</style>
