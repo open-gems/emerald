@@ -3,14 +3,15 @@ from pathlib import Path
 
 
 INPUT_PATH  = Path('output/input.html')
-OUTPUT_PATH = Path('output/input_empaquetado.html')
+OUTPUT_PATH = Path('output/output.html')
 
 
 def empaquetar_contenido_en_paginas(html_plano: str) -> str:
     soup = BeautifulSoup(html_plano, 'html.parser')
+    contenedor = soup.body if soup.body else soup
 
     # ── 1. Contenido huérfano antes de la primera página ──────────────────────
-    primera_pagina = soup.find('div', attrs={'data-type': 'page'})
+    primera_pagina = contenedor.find('div', attrs={'data-type': 'page'})
 
     if primera_pagina:
         nodos_huerfanos = []
@@ -37,7 +38,7 @@ def empaquetar_contenido_en_paginas(html_plano: str) -> str:
                 pagina_cero.append(nodo)
 
     # ── 2. Empaquetar contenido en cada página ─────────────────────────────────
-    for div_pagina in soup.find_all('div', attrs={'data-type': 'page'}):
+    for div_pagina in contenedor.find_all('div', attrs={'data-type': 'page'}):
         hermano = div_pagina.next_sibling
 
         while hermano:
@@ -49,7 +50,7 @@ def empaquetar_contenido_en_paginas(html_plano: str) -> str:
             div_pagina.append(hermano)
             hermano = siguiente
 
-    return soup.decode_contents()
+    return contenedor.decode_contents()
 
 
 def main():
