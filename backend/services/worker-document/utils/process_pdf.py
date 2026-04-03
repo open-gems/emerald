@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 import opendataloader_pdf
-from utils import format_html
 
 def process_pdf_document(
     file_path: Path, 
@@ -9,7 +8,7 @@ def process_pdf_document(
     file_name: str,
     export_format="html,markdown",
     include_images=False
-):
+) :
     """
     Convierte archivos PDF a formatos HTML y Markdown preservando la estructura.
     """
@@ -37,8 +36,8 @@ def process_pdf_document(
         )
         
         html_path = output_path / str(Path(file_name).with_suffix(".html"))
-        md_path = output_path / str(Path(file_name).with_suffix(".md"))
-        
+        md_path = output_path / str(Path(file_name).with_suffix(".md")) 
+          
         return html_path, md_path
         
         
