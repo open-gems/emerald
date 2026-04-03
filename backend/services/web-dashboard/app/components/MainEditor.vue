@@ -117,8 +117,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  border-bottom: 1px solid var(--ui-border);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 45%);
   z-index: 10; /* Siempre por encima del contenido */
 }
 

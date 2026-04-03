@@ -1,7 +1,7 @@
 <template>
   <PageSplit initialWidth="60%">
     <template #left>
-      <MarkdownEditor :initialContent="htmlListo" />
+      <MainEditor :initialContent="htmlListo" />
     </template>
     <template #right>
       <Preview />
