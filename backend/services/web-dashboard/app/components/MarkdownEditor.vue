@@ -78,36 +78,32 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
-:root {
-  --c-bg:       #141414;  /* fondo base */
-  --c-surface:  #1c1c1c;  /* sidebars, topbar */
-  --c-raised:   #242424;  /* elementos elevados, hover */
-  
-  --c-border:   #2e2e2e;  /* bordes sutiles */
-  --c-border2:  #3a3a3a;  /* bordes con énfasis */
-  --c-faint:    #3d3d3d;  /* fills inactivos */
-  --c-muted:    #6a6a6a;  /* texto terciario, labels */
-  --c-text2:    #9a9590;  /* texto secundario */
-  --c-text:     #e0dbd2;  /* texto principal */
-  --c-accent2:  #c4b89a;  /* acento secundario, bordes activos */
-  --c-accent:   #e8e0d0;  /* acento principal, títulos */
-
-  /* semánticas */
-  --c-red:      #c0432b;
-  --c-amber:    #b07830;
-  --c-green:    #4a7c54;
-
-  /* layout */
-  --r:          3px;      /* border-radius base */
-}
-
-
 /* --- CAPA DE RENDIMIENTO (CRÍTICO) --- */
 .editor-container {
   /* Establece cuánto espacio quieres que ocupe el editor en pantalla */
-  height: 100vh; /* Ocupa todo el alto de la ventana */
+  height: calc(100vh - 3rem); /* Ocupa todo el alto de la ventana */
   overflow-y: auto; /* Activa el scroll vertical cuando el contenido sea mayor a 100vh */
-  background: var(--c-bg);
+  background: var(--ui-bg);
+}
+
+/* 2. Motores WebKit (Chrome, Safari, Edge) */
+.editor-container::-webkit-scrollbar {
+  width: 1.25rem; /* Ancho del scroll vertical */
+  height: 1rem; /* Ancho del scroll horizontal */
+}
+
+.editor-container::-webkit-scrollbar-track {
+  background: var(--ui-bg); /* Color del carril (fondo) */
+  border-radius: var(--ui-radius);
+}
+
+.editor-container::-webkit-scrollbar-thumb {
+  background: var(--ui-bg-accented);
+  border: 4px solid var(--ui-bg); /* Crea un efecto de margen interno */
+}
+
+.editor-container::-webkit-scrollbar-thumb:hover {
+  background: var(--ui-bg-inverted); /* Color cuando pasas el mouse */
 }
 
 .tiptap-viewport {
@@ -128,17 +124,16 @@ onBeforeUnmount(() => {
   /* Evita que el scrollbar "tiemble". Ajusta 1100px a la altura real de tu página */
   contain-intrinsic-size: 1px 1100px;
 
-  background: var(--c-surface);
   margin-bottom: 40px;
   padding: 60px 80px;
   position: relative;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
 
   display: block;
   content-visibility: auto;
   contain-intrinsic-size: 1px 1100px; /* Muy importante para el scrollbar */
   min-height: 100px;
+  border-top: 1px solid var(--ui-border);
 }
 
 /* --- INDICADOR DE PÁGINA (ESTÉTICO) --- */

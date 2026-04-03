@@ -182,8 +182,8 @@ const navItems: NavigationMenuItem[] = [
           aria-label="Toggle sidebar"
           @click="open = !open"
         />
-        <UColorModeButton class="ml-auto" />
-        <UButton icon="i-lucide-bolt" variant="ghost" color="neutral" />
+
+        <UButton icon="i-lucide-bolt" variant="ghost" color="neutral"  class="ml-auto" />
       </div>
 
       <div class="flex-1">
