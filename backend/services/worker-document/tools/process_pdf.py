@@ -1,26 +1,53 @@
-import os
+
 from pathlib import Path
 import opendataloader_pdf
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, before_sleep
+from loguru import logger
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(min=1, max=8),
+    retry=retry_if_exception_type(RuntimeError),
+    before_sleep=lambda retry_state: logger.warning(
+        f"Attempt {retry_state.attempt_number} failed — retrying in {retry_state.next_action.sleep:.1f}s"
+    )
+)
 def process_pdf_document(
     file_path: Path, 
     output_path: Path, 
     file_name: str,
     export_format="html,markdown",
     include_images=False
-) :
+)-> tuple[Path, Path]:
     """
-    Convierte archivos PDF a formatos HTML y Markdown preservando la estructura.
-    """
-    # Asegurarse de que el directorio de salida existe
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
-        print(f"Directorio creado: {output_path}")
+    Converts a PDF file to HTML and Markdown formats while preserving document structure.
 
-    # Configuración de la conversión
+    Args:
+        file_path:      Path to the source PDF file.
+        output_path:    Directory where the converted files will be saved.
+        file_name:      Name used in error messages to identify the file.
+        export_format:  Comma-separated output formats (default: "html,markdown").
+        include_images: Whether to extract and include images in the output.
+
+    Returns:
+        A tuple of (html_path, md_path) pointing to the generated files.
+
+    Raises:
+        FileNotFoundError: If the source PDF does not exist.
+        RuntimeError:      If the conversion fails for any reason.
+    """
+    
+    # Validate that the source file exists before attempting conversion
+    if not file_path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+    
+    # Create the output directory (including any missing parents) if it doesn't exist
+    output_path.mkdir(parents=True, exist_ok=True)
+
+     # Map the boolean flag to the string value expected by the converter
     image_setting = "on" if include_images else "off"
     
-    # Separador de páginas personalizado para el HTML
+    # HTML page separator injected between pages to preserve page boundaries
     page_sep = (
         "<div data-type='page' data-number='%page-number%' "
         "id='page-%page-number%' class='page-virtual'></div>"
@@ -35,12 +62,13 @@ def process_pdf_document(
             format=export_format,
         )
         
-        html_path = output_path / str(Path(file_name).with_suffix(".html"))
-        md_path = output_path / str(Path(file_name).with_suffix(".md")) 
+        # Build output paths from the source file stem (name without extension)
+        file_stem = file_path.stem
+        html_path = output_path / f"{file_stem}.html"
+        md_path   = output_path / f"{file_stem}.md"
           
         return html_path, md_path
         
-        
     except Exception as e:
-        print(f"Error al procesar los archivos: {e}")
+        raise RuntimeError(f"Failed to convert '{file_name}': {e}") from e
 
