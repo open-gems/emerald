@@ -53,6 +53,11 @@ const Page = Node.create({
         parseHTML: (element) => element.getAttribute("id"),
         renderHTML: (attributes) => ({ id: attributes.id }),
       },
+      class: {
+        default: "page-virtual",
+        parseHTML: (element) => element.getAttribute("class"),
+        renderHTML: (attributes) => ({ class: attributes.class }),
+      },
     };
   },
 
@@ -61,15 +66,7 @@ const Page = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    // Añadimos la clase 'page-virtual' para el CSS de rendimiento
-    return [
-      "div",
-      mergeAttributes(HTMLAttributes, {
-        "data-type": "page",
-        class: "page-virtual",
-      }),
-      0,
-    ];
+    return ["div", mergeAttributes({ "data-type": "page" }, HTMLAttributes), 0];
   },
 });
 
