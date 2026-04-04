@@ -1,5 +1,5 @@
 from pathlib import Path
-from tools import process_pdf_document,format_html, extract_md_chunk, get_context_from_text
+from tools import process_pdf_document,format_html, extract_md_chunk, get_context_from_text, extraer_keywords_md, detect_word_language
 
 INPUT_PATH = "input"
 OUTPUT_PATH = "output"
@@ -17,6 +17,10 @@ output_path = Path(OUTPUT_PATH) / user_id
 
 md_path = Path('output/019d2612-a01d-734c-ab63-917106f31187/019d35cd-3578-7f69-835a-7ad7f2bbe8ec.md')
         
-context_chunk = extract_md_chunk(md_path, 500)
+#context_chunk = extract_md_chunk(md_path, 500)
 
-get_context_from_text(context_chunk)
+#get_context_from_text(context_chunk)
+
+keywords = extraer_keywords_md(md_path, top_n=200)
+
+detect_word_language(keywords)
